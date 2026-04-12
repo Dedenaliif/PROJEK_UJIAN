@@ -19,35 +19,34 @@
                       <i class="nav-icon fas fa-tachometer-alt"></i>
                       <p>
                           Master Data
-                          <i class="right fas fa-angle-left"></i>
                       </p>
                   </a>
-                  <ul class="nav nav-treeview">
+
                       <li class="nav-item">
-                          <a href="../../index.html" class="nav-link">
+                          <a href="{{ route('user.index') }}" class="nav-link {{ request()->routeIs('user.*') ? 'active' : '' }}">
                               <i class="far fa-circle nav-icon"></i>
                               <p>Data User</p>
                           </a>
                       </li>
                       <li class="nav-item">
-                          <a href="{{ route('siswa.index') }}" class="nav-link">
+                          <a href="{{ route('siswa.index') }}" class="nav-link {{ request()->routeIs('siswa.*') ? 'active' : '' }}">
                               <i class="far fa-circle nav-icon"></i>
                               <p>Data Siswa</p>
                           </a>
                       </li>
                       <li class="nav-item">
-                          <a href="{{ route('kelas.index') }}" class="nav-link">
+                          <a href="{{ route('kelas.index') }}" class="nav-link {{ request()->routeIs('kelas.*') ? 'active' : '' }}">
                               <i class="far fa-circle nav-icon"></i>
                               <p>Data Kelas</p>
                           </a>
                       </li>
                       <li class="nav-item">
-                          <a href="{{ route('jurusan.index') }}" class="nav-link">
+                          <a href="{{ route('jurusan.index') }}" class="nav-link {{ request()->routeIs('jurusan.*') ? 'active' : '' }}">
                               <i class="far fa-circle nav-icon"></i>
                               <p>Data Jurusan</p>
                           </a>
                       </li>
-                  </ul>
+
               </li>
               <li class="nav-item">
                   <a href="../../index2.html" class="nav-link">

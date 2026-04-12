@@ -24,7 +24,7 @@ class KelasController extends Controller
             'nama_kelas' => $request->nama_kelas
         ]);
 
-        return redirect()->route('kelas.index');
+        return redirect()->route('kelas.index')->with('success','Data Kelas Ditambahkan');
     }
     public function edit($id)
     {
@@ -38,6 +38,13 @@ class KelasController extends Controller
             'nama_kelas' => $request->nama_kelas
         ]);
 
-        return redirect()->route('kelas.index');
+        return redirect()->route('kelas.index')->with('success','Data Kelas Berhasil Diubah');
+    }
+
+        public function destroy($id)
+    {
+        Kelas::findOrFail($id)->delete();
+
+        return back()->with('success', 'Data berhasil dihapus');
     }
 }

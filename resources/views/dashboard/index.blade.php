@@ -24,7 +24,7 @@
         <div class="content-wrapper">
 
             <!-- Main content -->
-            <section class="content">
+            <section class="content mt-3">
 
                 <!-- Default box -->
                 <div class="card">

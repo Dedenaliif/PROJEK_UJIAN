@@ -24,7 +24,7 @@ class JurusanController extends Controller
             'nama_jurusan' => $request->nama_jurusan
         ]);
 
-        return redirect()->route('jurusan.index');
+        return redirect()->route('jurusan.index')->with('success','Data Jurusan Ditambahkan');
     }
     public function edit($id)
     {
@@ -38,7 +38,14 @@ class JurusanController extends Controller
             'nama_jurusan' => $request->nama_jurusan
         ]);
 
-        return redirect()->route('jurusan.index');
+        return redirect()->route('jurusan.index')->with('success','Data Berhasil Diubah');
+    }
+
+    public function destroy($id)
+    {
+        Jurusan::findOrFail($id)->delete();
+
+        return back()->with('success', 'Data berhasil dihapus');
     }
 
 }

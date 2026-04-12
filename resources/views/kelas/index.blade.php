@@ -1,6 +1,17 @@
 @extends('dashboard.index')
 
 @section('content')
+@if (session('success'))
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: '{{ session('success') }}',
+        timer: 2000,
+        showConfirmButton: false
+    });
+</script>
+@endif
     <section class="content-header">
         <div class="container-fluid px-2">
             <div class="row mb-2">
@@ -46,8 +57,14 @@
                                         <button class="btn btn-warning btn-sm btn-edit_kelas" data-id="{{ $k->id }}"
                                             data-nama_kelas="{{ $k->nama_kelas }}" data-toggle="modal"
                                             data-target="#modal-edit">Edit</button>
-                                        <button class="btn btn-danger btn-sm" data-toggle="modal"
-                                            data-target="#modal-delete-{{ $k->id }}">Hapus</button>
+                                       <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ $k->id }})">
+                                            Hapus
+                                        </button>
+
+                                        <form id="delete-form-{{ $k->id }}" action="{{ route('kelas.destroy', $k->id) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                        </form>
                                     </td>
                                 </tr>
                             @empty
@@ -67,4 +84,21 @@
     @include('kelas.modaledit')
     @include('kelas.modaldelete')
     @include('kelas.modalcreate')
+    <script>
+    function confirmDelete(id) {
+        Swal.fire({
+            title: 'Yakin hapus?',
+            text: "Data tidak bisa dikembalikan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, hapus!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('delete-form-' + id).submit();
+            }
+        });
+    }
+    </script>
 @endsection

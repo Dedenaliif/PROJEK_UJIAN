@@ -1,6 +1,17 @@
 @extends('dashboard.index')
 
 @section('content')
+@if (session('success'))
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: '{{ session('success') }}',
+        timer: 2000,
+        showConfirmButton: false
+    });
+</script>
+@endif
     <section class="content-header">
         <div class="container-fluid px-2">
             <div class="row mb-2">
@@ -29,7 +40,7 @@
 
                 <!-- Card Body -->
                 <div class="card-body">
-                    <table id="table-jurusan" class="table table-bordered table-striped">
+                    <table id="table-kelas" class="table table-bordered table-striped">
                         <thead class="text-center">
                             <tr>
                                 <th>No</th>
@@ -46,8 +57,14 @@
                                         <button class="btn btn-warning btn-sm btn-edit_jurusan" data-id="{{ $j->id }}"
                                             data-nama_jurusan="{{ $j->nama_jurusan }}" data-toggle="modal"
                                             data-target="#modal-edit">Edit</button>
-                                        <button class="btn btn-danger btn-sm" data-toggle="modal"
-                                            data-target="#modal-delete-{{ $j->id }}">Hapus</button>
+                                       <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ $j->id }})">
+                                            Hapus
+                                        </button>
+
+                                        <form id="delete-form-{{ $j->id }}" action="{{ route('jurusan.destroy', $j->id) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                        </form>
                                     </td>
                                 </tr>
                             @empty
@@ -67,4 +84,21 @@
     @include('jurusan.modaledit')
     @include('jurusan.modaldelete')
     @include('jurusan.modalcreate')
+    <script>
+    function confirmDelete(id) {
+        Swal.fire({
+            title: 'Yakin hapus?',
+            text: "Data tidak bisa dikembalikan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, hapus!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('delete-form-' + id).submit();
+            }
+        });
+    }
+    </script>
 @endsection
