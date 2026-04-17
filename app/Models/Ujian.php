@@ -6,5 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class Ujian extends Model
 {
-    //
+    protected $fillable = [
+        'judul',
+        'deskripsi',
+        'waktu',
+        'max_percobaan',
+        'waktu_mulai',
+        'waktu_selesai'
+    ];    
+    public function pertanyaans()
+    {
+        return $this->hasMany(Pertanyaan::class);
+    }
+
+    public function percobaanUjians()
+    {
+        return $this->hasMany(PercobaanUjian::class);
+    }
+
+
 }

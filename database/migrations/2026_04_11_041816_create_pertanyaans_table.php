@@ -13,6 +13,18 @@ return new class extends Migration
     {
         Schema::create('pertanyaans', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('ujian_id')->constrained()->cascadeOnDelete();
+
+            $table->text('text_pertanyaan');
+
+            $table->string('opsi_a');
+            $table->string('opsi_b');
+            $table->string('opsi_c');
+            $table->string('opsi_d');
+
+            $table->enum('jawaban_benar', ['A', 'B', 'C', 'D']);
+            $table->integer('skor')->default(1);
+
             $table->timestamps();
         });
     }

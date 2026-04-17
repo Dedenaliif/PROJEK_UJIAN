@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('ujians', function (Blueprint $table) {
             $table->id();
+            $table->string('judul');
+            $table->text('deskripsi')->nullable();
+            $table->integer('waktu'); // menit
+            $table->integer('max_percobaan')->default(3);
+            $table->timestamp('waktu_mulai')->nullable();
+            $table->timestamp('waktu_selesai')->nullable();
             $table->timestamps();
         });
     }

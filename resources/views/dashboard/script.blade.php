@@ -29,6 +29,29 @@
     });
 </script>
 <script>
+    $('.btn-tambah-soal').click(function() {
+        let judul = $(this).data('judul');
+        let ujianId = $(this).data('id');
+        console.log(judul);
+        $('#judul_ujian').val(judul);
+        $('#form-tambah-soal').attr('action', `/ujian/${ujianId}/soal`);
+    });
+</script>
+@if (isset($ujian))
+    <script>
+        $('.jawaban-radio').change(function() {
+            let jawaban = $(this).val();
+            let soalId = $(this).data('soal');
+
+            $.post("{{ route('ujianstart.save', $ujian->id) }}", {
+                _token: "{{ csrf_token() }}",
+                soal_id: soalId,
+                jawaban: jawaban
+            });
+        });
+    </script>
+@endif
+<script>
     $('.btn-edit_jurusan').click(function() {
         let id = $(this).data('id');
         let nama_jurusan = $(this).data('nama_jurusan');
@@ -50,6 +73,6 @@
         $('#form-edit').attr('action', '/user/' + id);
     });
 </script>
-    <script>
-        $("#table-kelas").DataTable();
-    </script>
+<script>
+    $("#table-kelas").DataTable();
+</script>

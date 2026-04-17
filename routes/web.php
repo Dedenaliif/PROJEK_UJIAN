@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\BuatSoalController;
+use App\Http\Controllers\BuatUjianController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataDiriController;
+use App\Http\Controllers\HalamanUjianController;
 use App\Http\Controllers\JurusanController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\LoginController;
@@ -25,4 +28,14 @@ Route::post('/login', [LoginController::class, 'authenticate'])->name('login.aut
 // Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/datadiri', [DataDiriController::class, 'index'])->name('datadiri.index');
 Route::post('/datadiri', [DataDiriController::class, 'store'])->name('datadiri.store');
+Route::get('/ujian', [BuatUjianController::class, 'index'])->name('ujian.index');
+Route::get('/ujian/create', [BuatUjianController::class, 'create'])->name('ujian.create');
+Route::post('/ujian', [BuatUjianController::class, 'store'])->name('ujian.store');
+// Route::get('/ujian/{ujian}', [BuatSoalController::class, 'create'])->name('create.soal');
+Route::post('/ujian/{ujian}/soal', [BuatSoalController::class, 'store'])
+    ->name('store.soal');
+Route::get('/ujianstart/{ujian}/start', [HalamanUjianController::class, 'start'])->name('ujianstart.start');
+Route::get('/ujianstart/{ujian}', [HalamanUjianController::class, 'show'])->name('ujianstart.show');
+Route::post('/ujianstart/{ujian}/save', [HalamanUjianController::class, 'save'])->name('ujianstart.save');
+Route::post('/ujianstart/{ujian}/selesai', [HalamanUjianController::class, 'selesai'])->name('ujianstart.selesai');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');

@@ -13,6 +13,19 @@ return new class extends Migration
     {
         Schema::create('percobaan_ujians', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('ujian_id')->constrained()->cascadeOnDelete();
+
+            $table->integer('percobaan_ke')->default(1);
+
+            $table->timestamp('waktu_mulai')->nullable();
+            $table->timestamp('waktu_selesai')->nullable();
+
+            $table->enum('status', ['sedang dikerjakan', 'selesai'])->default('sedang dikerjakan');
+
+            $table->integer('skor')->nullable();
+
             $table->timestamps();
         });
     }

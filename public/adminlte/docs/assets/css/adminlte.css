@@ -47,6 +47,10 @@
   box-sizing: border-box;
 }
 
+.btn-check{
+  display: none;
+}
+
 html {
   font-family: sans-serif;
   line-height: 1.15;

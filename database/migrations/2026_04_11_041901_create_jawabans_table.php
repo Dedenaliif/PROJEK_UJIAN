@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('jawabans', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('percobaan_ujian_id')->constrained('percobaan_ujians')->cascadeOnDelete();
+            $table->foreignId('pertanyaan_id')->constrained('pertanyaans')->cascadeOnDelete();
+
+            $table->enum('pilihan_jawaban', ['A', 'B', 'C', 'D'])->nullable();
+            $table->boolean('benar')->default(false);
+            $table->integer('skor')->default(0);
+
             $table->timestamps();
         });
     }

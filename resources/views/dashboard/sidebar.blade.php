@@ -49,7 +49,7 @@
 
               </li>
               <li class="nav-item">
-                  <a href="../../index2.html" class="nav-link">
+                  <a href="{{ route('ujian.index') }}" class="nav-link {{ request()->routeIs('ujian.*') ? 'active' : '' }}">
                       <i class="far fa-circle nav-icon"></i>
                       <p>Data Ujian</p>
                   </a>
