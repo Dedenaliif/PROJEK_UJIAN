@@ -2,13 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+// use Illuminate\Http\Request;
+use App\Models\Ujian;
 
 class BuatUjianController extends Controller
 {
     public function index()
     {
-        $ujians = \App\Models\Ujian::all();
+        $ujians = Ujian::withCount([
+            'pertanyaans as total_word' => function ($q) {
+                $q->where('tipe', 'word');
+            },
+            'pertanyaans as total_excel' => function ($q) {
+                $q->where('tipe', 'excel');
+            }
+        ])->get();
+
         return view('ujian.index', compact('ujians'));
     }
 

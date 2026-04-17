@@ -14,6 +14,7 @@ class Pertanyaan extends Model
         'opsi_c',
         'opsi_d',
         'jawaban_benar',
+        'tipe',
         'skor'
     ];
 
