@@ -8,7 +8,7 @@
                     <h1>Data Ujian</h1>
                 </div>
 
-                @if (auth()->user()->role == 'admin')
+                @if (auth()->user()->role == 'penguji')
                     <div class="col-sm-6 text-right">
                         <a href="{{ route('ujian.create') }}" class="btn rounded-lg btn-primary btn-sm px-3 fw-bold">Buat
                             Ujian</a>
@@ -96,14 +96,14 @@
 
                                         <div class="d-flex justify-content-center gap-2">
 
-                                            @if (auth()->user()->role == 'admin')
+                                            @if (auth()->user()->role == 'penguji')
                                                 @if ($item->tipe == 'word')
-                                                    <a href="{{ url('/soal/' . $item->id . '?tipe=word') }}" id="btnWord"
+                                                    <a href="{{ route('soal.create', ['ujian' => $item->id, 'tipe' => 'word']) }}" id="btnWord"
                                                         class="btn btn-primary px-4 m-2">
                                                         Word
                                                     </a>
                                                 @elseif($item->tipe == 'excel')
-                                                    <a href="{{ url('/soal/' . $item->id . '?tipe=excel') }}"
+                                                    <a href="{{ route('soal.create', ['ujian' => $item->id, 'tipe' => 'excel']) }}"
                                                         id="btnExcel" class="btn btn-success px-4 m-2">
                                                         Excel
                                                     </a>
@@ -112,11 +112,32 @@
                                                 @endif
                                             @endif
 
-                                            <a href="{{ route('ujianstart.show', $item->id) }}"
-                                                class="btn btn-warning m-2">
-                                                Pilih Tipe
-                                            </a>
+                                     @if (auth()->user()->role == 'siswa')
 
+                                            @if ($item->nilai_terakhir >= 75)
+                                                <button class="btn btn-success px-3">Selesai</button>
+
+                                            @elseif ($item->nilai_terakhir !== null)
+
+                                                <form action="{{ route('ujianstart.start', $item->id) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-warning px-3">
+                                                        Coba Lagi
+                                                    </button>
+                                                </form>
+
+                                            @else
+
+                                                <form action="{{ route('ujianstart.start', $item->id) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-primary px-3">
+                                                        Mulai
+                                                    </button>
+                                                </form>
+
+                                            @endif
+
+                                        @endif
                                         </div>
 
                                     </td>
@@ -128,27 +149,6 @@
 
             </div>
         </div>
-
-
-        {{-- <script>
-        let ujianId = null;
-
-        document.querySelectorAll('.btn-pilih-soal').forEach(btn => {
-            btn.addEventListener('click', function() {
-                ujianId = this.dataset.id;
-            });
-        });
-
-        document.getElementById('btnWord').onclick = function() {
-            if (!ujianId) return alert('Ujian tidak ditemukan');
-            window.location.href = `/soal/${ujianId}?tipe=word`;
-        };
-
-        document.getElementById('btnExcel').onclick = function() {
-            if (!ujianId) return alert('Ujian tidak ditemukan');
-            window.location.href = `/soal/${ujianId}?tipe=excel`;
-        };
-    </script> --}}
 
     </section>
 @endsection

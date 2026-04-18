@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             KelasSeeder::class,
             JurusanSeeder::class,
+            UjianSeeder::class,
+            PertanyaanSeeder::class,
         ]);
         // User::factory()->create([
         //     'name' => 'Test User',

@@ -2,14 +2,6 @@
 
 @section('content')
 
-@if ($errors->any())
-<div class="alert alert-danger">
-    @foreach ($errors->all() as $error)
-        <div>{{ $error }}</div>
-    @endforeach
-</div>
-@endif
-
 <div class="container">
 
     {{-- HEADER --}}
@@ -21,13 +13,34 @@
 
             <span class="badge bg-info">
                 {{ $soals->count() }}/30 Soal
+                @if($soals->count() >= 30)
+                    <div class="alert alert-warning">
+                        Soal sudah mencapai batas maksimal (30)
+                    </div>
+                @endif
             </span>
         </div>
     </div>
 
     {{-- NOTIF --}}
-    @if (session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            @foreach ($errors->all() as $error)
+                <div>{{ $error }}</div>
+            @endforeach
+        </div>
     @endif
 
     <div class="card shadow-sm">
@@ -156,10 +169,17 @@ let index = 1;
 
 document.getElementById('tambah-soal')?.addEventListener('click', function () {
 
-    if (index >= 30) {
-        alert('Maksimal 30 soal');
-        return;
-    }
+    let maxSoal = {{ $soals->count() }};
+    let index = maxSoal;
+
+    document.getElementById('tambah-soal')?.addEventListener('click', function () {
+
+        if (index >= 30) {
+            alert('Soal sudah mencapai 30');
+            return;
+        }
+
+        index++;
 
     let html = `
     <div class="soal-item border p-3 mb-3">

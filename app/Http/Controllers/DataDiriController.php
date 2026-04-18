@@ -36,5 +36,5 @@ class DataDiriController extends Controller
         ]);
 
         return redirect()->route('dashboard')->with('success', 'Data diri berhasil disimpan!');
-    }   
+    }
 }

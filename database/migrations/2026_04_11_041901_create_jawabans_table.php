@@ -19,8 +19,9 @@ return new class extends Migration
 
             $table->enum('pilihan_jawaban', ['A', 'B', 'C', 'D'])->nullable();
             $table->boolean('benar')->default(false);
-            $table->integer('skor')->default(0);
+            $table->float('skor')->default(0);
 
+            $table->unique(['percobaan_ujian_id', 'pertanyaan_id']);
             $table->timestamps();
         });
     }

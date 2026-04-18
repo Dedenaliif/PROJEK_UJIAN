@@ -21,35 +21,48 @@ class LoginController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
+
+            $request->session()->regenerate(); // 🔥 WAJIB di sini
+
             $user = Auth::user();
+
+            // ================= ROLE REDIRECT =================
             switch ($user->role) {
+
+                // ================= ADMIN =================
                 case 'admin':
-                    if (!Siswa::where('user_id', $user->id)->exists()) {
+                    return redirect()->to('/dashboard');
 
-                        return redirect()->route('datadiri.index')->with('warning', 'Silakan lengkapi data diri Anda terlebih dahulu!');
-                    }
-                    return redirect()->route('dashboard');
-                case 'guru':
-                    return redirect()->route('dashboard');
+                // ================= PENGUJI =================
+                case 'penguji':
+                    return redirect()->to('/penguji/ujian');
+
+                // ================= SISWA =================
                 case 'siswa':
-                    if (!Siswa::where('user_id', $user->id)->exists()) {
 
-                        return redirect()->route('datadiri.index')->with('warning', 'Silakan lengkapi data diri Anda terlebih dahulu!');
+                    // cek data diri
+                    $sudahIsi = Siswa::where('user_id', $user->id)->exists();
+
+                    if (!$sudahIsi) {
+                        return redirect()->route('datadiri.index')
+                            ->with('warning', 'Silakan lengkapi data diri terlebih dahulu!');
                     }
-                    return redirect()->route('dashboard');
+
+                    return redirect()->to('/siswa/ujian');
+
+                // ================= DEFAULT =================
                 default:
                     Auth::logout();
-                    return redirect('/')->withErrors(['username' => 'Unauthorized role.']);
+                    return redirect('/')
+                        ->withErrors(['username' => 'Role tidak dikenali']);
             }
-            $request->session()->regenerate();
-
-            return redirect()->intended('dashboard');
         }
 
         return back()->withErrors([
-            'username' => 'The provided credentials do not match our records.',
+            'username' => 'Username atau password salah',
         ])->onlyInput('username');
     }
+
     public function logout(Request $request)
     {
         Auth::logout();

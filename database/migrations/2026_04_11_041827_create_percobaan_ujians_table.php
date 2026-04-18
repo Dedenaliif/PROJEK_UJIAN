@@ -24,7 +24,7 @@ return new class extends Migration
 
             $table->enum('status', ['sedang dikerjakan', 'selesai'])->default('sedang dikerjakan');
 
-            $table->integer('skor')->nullable();
+            $table->float('skor')->nullable();;
 
             $table->timestamps();
         });

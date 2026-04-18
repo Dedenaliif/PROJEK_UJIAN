@@ -33,10 +33,29 @@ class BuatSoalController extends Controller
 
     public function store(Request $request, $ujianId)
     {
-        $jumlah = count($request->text_pertanyaan);
+        $ujian = Ujian::findOrFail($ujianId);
 
-        for ($i = 0; $i < $jumlah; $i++) {
-            Pertanyaan::create([
+        // hitung soal yang sudah ada
+        $jumlahSoalSekarang = Pertanyaan::where('ujian_id', $ujianId)->count();
+
+        // jumlah input baru
+        $jumlahInput = count($request->text_pertanyaan);
+
+        // cek kalau melebihi 30
+        if (($jumlahSoalSekarang + $jumlahInput) > 30) {
+
+            $sisa = 30 - $jumlahSoalSekarang;
+
+            return redirect()->back()->with('error',
+                $sisa > 0
+                    ? "Soal maksimal 30. Kamu hanya bisa menambah $sisa soal lagi."
+                    : "Soal sudah mencapai batas maksimal (30 soal)."
+            );
+        }
+
+        // simpan soal
+        for ($i = 0; $i < $jumlahInput; $i++) {
+            \App\Models\Pertanyaan::create([
                 'ujian_id' => $ujianId,
                 'text_pertanyaan' => $request->text_pertanyaan[$i],
                 'opsi_a' => $request->opsi_a[$i],
