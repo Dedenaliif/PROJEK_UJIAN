@@ -22,74 +22,42 @@ class BuatSoalController extends Controller
         return view('ujian.index', compact('ujians'));
     }
 
-    public function create(Request $request, $ujian)
+    public function create($ujianId)
     {
-        $ujian = Ujian::withCount([
-            'pertanyaans as total_word' => function ($q) {
-                $q->where('tipe', 'word');
-            },
-            'pertanyaans as total_excel' => function ($q) {
-                $q->where('tipe', 'excel');
-            }
-        ])->findOrFail($ujian);
+        $ujian = Ujian::findOrFail($ujianId);
 
-        $tipe = $request->tipe;
+        $soals = Pertanyaan::where('ujian_id', $ujianId)->get();
 
-        if (!$tipe) {
-            return redirect()->back()->with('error', 'Pilih tipe soal dulu');
-        }
-
-        $soals = Pertanyaan::where('ujian_id', $ujian->id)
-                    ->where('tipe', $tipe)
-                    ->get();
-
-        return view('ujian.soal', compact('ujian', 'soals', 'tipe'));
+        return view('ujian.soal', compact('ujian', 'soals'));
     }
 
-    public function store(Request $request, $ujian)
+    public function store(Request $request, $ujianId)
     {
         $jumlah = count($request->text_pertanyaan);
 
-        $total = Pertanyaan::where('ujian_id', $ujian)
-            ->where('tipe', $request->tipe)
-            ->count();
-
-        if ($total + $jumlah > 30) {
-            return back()->with('error', 'Melebihi batas 30 soal');
-        }
-
         for ($i = 0; $i < $jumlah; $i++) {
             Pertanyaan::create([
-                'ujian_id' => $ujian,
+                'ujian_id' => $ujianId,
                 'text_pertanyaan' => $request->text_pertanyaan[$i],
                 'opsi_a' => $request->opsi_a[$i],
                 'opsi_b' => $request->opsi_b[$i],
                 'opsi_c' => $request->opsi_c[$i],
                 'opsi_d' => $request->opsi_d[$i],
                 'jawaban_benar' => $request->jawaban_benar[$i],
-                'tipe' => $request->tipe,
-                'skor' => 100/60
             ]);
         }
 
-        return redirect()->route('soal.create', [
-            'ujian' => $ujian,
-            'tipe' => $request->tipe
-        ])->with('success', 'Semua soal berhasil ditambahkan');
+        return redirect()->back()->with('success','Soal berhasil disimpan');
     }
 
-    public function edit(Request $request, $ujian, $id)
+    public function edit($ujianId, $id)
     {
-        $ujian = Ujian::findOrFail($ujian);
+        $ujian = Ujian::findOrFail($ujianId);
         $edit = Pertanyaan::findOrFail($id);
 
-        $tipe = $edit->tipe ?? $request->tipe;
+        $soals = Pertanyaan::where('ujian_id', $ujianId)->get();
 
-        $soals = Pertanyaan::where('ujian_id', $ujian->id)
-                    ->where('tipe', $tipe)
-                    ->get();
-
-        return view('ujian.soal', compact('ujian', 'soals', 'edit', 'tipe'));
+        return view('ujian.soal', compact('ujian','soals','edit'));
     }
 
     public function update(Request $request, $id)

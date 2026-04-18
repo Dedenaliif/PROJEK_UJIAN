@@ -10,12 +10,7 @@ class BuatUjianController extends Controller
     public function index()
     {
         $ujians = Ujian::withCount([
-            'pertanyaans as total_word' => function ($q) {
-                $q->where('tipe', 'word');
-            },
-            'pertanyaans as total_excel' => function ($q) {
-                $q->where('tipe', 'excel');
-            }
+            'pertanyaans as total'
         ])->get();
 
         return view('ujian.index', compact('ujians'));

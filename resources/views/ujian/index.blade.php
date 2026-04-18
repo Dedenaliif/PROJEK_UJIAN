@@ -76,12 +76,7 @@
                             <td class="text-center">
                                 <div>
                                     <span class="badge bg-primary">
-                                        Word: {{ $item->total_word ?? 0 }}/30
-                                    </span>
-                                </div>
-                                <div class="mt-1">
-                                    <span class="badge bg-success">
-                                        Excel: {{ $item->total_excel ?? 0 }}/30
+                                         {{ $item->total ?? 0 }}/30
                                     </span>
                                 </div>
                             </td>
@@ -91,12 +86,10 @@
 
                                 <div class="d-flex justify-content-center gap-2">
 
-                                    <button class="btn btn-sm btn-success btn-pilih-soal m-2"
-                                        data-id="{{ $item->id }}"
-                                        data-toggle="modal"
-                                        data-target="#modalPilihSoal">
-                                        Soal
-                                    </button>
+                                   <a href="{{ route('soal.create', $item->id) }}"
+                                    class="btn btn-sm btn-success m-2">
+                                    Buat Soal
+                                    </a>
 
                                     <a href="{{ route('ujianstart.start', $item->id) }}"
                                         class="btn btn-sm btn-primary m-2">

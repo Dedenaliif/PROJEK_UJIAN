@@ -21,10 +21,8 @@ return new class extends Migration
             $table->string('opsi_b');
             $table->string('opsi_c');
             $table->string('opsi_d');
-
-            $table->enum('tipe', ['word', 'excel']);
             $table->enum('jawaban_benar', ['A', 'B', 'C', 'D']);
-            $table->integer('skor');
+            $table->integer('skor')->nullable();
 
             $table->timestamps();
         });

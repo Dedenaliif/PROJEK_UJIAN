@@ -17,7 +17,6 @@
         <div class="card-body d-flex justify-content-between align-items-center">
             <div>
                 <h4 class="mb-0">{{ $ujian->judul }}</h4>
-                <small class="text-muted">Tipe: {{ strtoupper($tipe) }}</small>
             </div>
 
             <span class="badge bg-info">
@@ -42,8 +41,6 @@
                 @csrf
                 @method('PUT')
 
-                <input type="hidden" name="tipe" value="{{ $tipe }}">
-
                 <div class="mb-3">
                     <textarea name="text_pertanyaan" class="form-control" required>{{ old('text_pertanyaan', $edit->text_pertanyaan) }}</textarea>
                 </div>
@@ -64,7 +61,7 @@
 
                 <button class="btn btn-warning mt-3">Update Soal</button>
 
-                <a href="{{ route('soal.create', [$ujian->id, 'tipe'=>$tipe]) }}" class="btn btn-secondary mt-3">
+                <a href="{{ route('soal.create', $ujian->id) }}" class="btn btn-secondary mt-3">
                     Batal
                 </a>
             </form>
@@ -76,7 +73,7 @@
             <form action="{{ route('soal.store', $ujian->id) }}" method="POST">
                 @csrf
 
-                <input type="hidden" name="tipe" value="{{ $tipe }}">
+
 
                 <div id="form-container">
 
@@ -138,7 +135,7 @@
                     </span>
                 </td>
                 <td>
-                    <a href="{{ route('soal.edit', [$ujian->id, $item->id]) }}?tipe={{ $tipe }}" class="btn btn-warning btn-sm">Edit</a>
+                    <a href="{{ route('soal.edit', [$ujian->id, $item->id]) }}" class="btn btn-warning btn-sm">Edit</a>
 
                     <form action="{{ route('soal.destroy',[$ujian->id, $item->id]) }}" method="POST" style="display:inline;">
                         @csrf
