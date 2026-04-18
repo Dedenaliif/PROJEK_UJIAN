@@ -14,46 +14,69 @@
           <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
               <!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
-              <li class="nav-item">
-                  <a href="#" class="nav-link">
-                      <i class="nav-icon fas fa-tachometer-alt"></i>
-                      <p>
-                          Master Data
-                      </p>
-                  </a>
+              @if (auth()->user()->role == 'admin')
+                  <li class="nav-item">
+                      <a href="#" class="nav-link">
+                          <i class="nav-icon fas fa-tachometer-alt"></i>
+                          <p>
+                              Master Data
+                          </p>
+                      </a>
 
-                      <li class="nav-item">
-                          <a href="{{ route('user.index') }}" class="nav-link {{ request()->routeIs('user.*') ? 'active' : '' }}">
-                              <i class="far fa-circle nav-icon"></i>
-                              <p>Data User</p>
-                          </a>
-                      </li>
-                      <li class="nav-item">
-                          <a href="{{ route('siswa.index') }}" class="nav-link {{ request()->routeIs('siswa.*') ? 'active' : '' }}">
-                              <i class="far fa-circle nav-icon"></i>
-                              <p>Data Siswa</p>
-                          </a>
-                      </li>
-                      <li class="nav-item">
-                          <a href="{{ route('kelas.index') }}" class="nav-link {{ request()->routeIs('kelas.*') ? 'active' : '' }}">
-                              <i class="far fa-circle nav-icon"></i>
-                              <p>Data Kelas</p>
-                          </a>
-                      </li>
-                      <li class="nav-item">
-                          <a href="{{ route('jurusan.index') }}" class="nav-link {{ request()->routeIs('jurusan.*') ? 'active' : '' }}">
-                              <i class="far fa-circle nav-icon"></i>
-                              <p>Data Jurusan</p>
-                          </a>
-                      </li>
+                  <li class="nav-item">
+                      <a href="{{ route('user.index') }}"
+                          class="nav-link {{ request()->routeIs('user.*') ? 'active' : '' }}">
+                          <i class="far fa-circle nav-icon"></i>
+                          <p>Data User</p>
+                      </a>
+                  </li>
+                  <li class="nav-item">
+                      <a href="{{ route('siswa.index') }}"
+                          class="nav-link {{ request()->routeIs('siswa.*') ? 'active' : '' }}">
+                          <i class="far fa-circle nav-icon"></i>
+                          <p>Data Siswa</p>
+                      </a>
+                  </li>
+                  <li class="nav-item">
+                      <a href="{{ route('kelas.index') }}"
+                          class="nav-link {{ request()->routeIs('kelas.*') ? 'active' : '' }}">
+                          <i class="far fa-circle nav-icon"></i>
+                          <p>Data Kelas</p>
+                      </a>
+                  </li>
+                  <li class="nav-item">
+                      <a href="{{ route('jurusan.index') }}"
+                          class="nav-link {{ request()->routeIs('jurusan.*') ? 'active' : '' }}">
+                          <i class="far fa-circle nav-icon"></i>
+                          <p>Data Jurusan</p>
+                      </a>
+                  </li>
 
-              </li>
-              <li class="nav-item">
-                  <a href="{{ route('ujian.index') }}" class="nav-link {{ request()->routeIs('ujian.*') ? 'active' : '' }}">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Data Ujian</p>
-                  </a>
-              </li>
+                  </li>
+                  <li class="nav-item">
+                      <a href="{{ route('ujian.index') }}"
+                          class="nav-link {{ request()->routeIs('ujian.*') ? 'active' : '' }}">
+                          <i class="far fa-circle nav-icon"></i>
+                          <p>Data Ujian</p>
+                      </a>
+                  </li>
+              @endif
+              @if (auth()->user()->role == 'siswa')
+                  <li class="nav-item">
+                      <a href="{{ route('ujian.index') }}"
+                          class="nav-link {{ request()->routeIs('ujian.*') ? 'active' : '' }}">
+                          <i class="far fa-circle nav-icon"></i>
+                          <p>Data Ujian</p>
+                      </a>
+                  </li>
+                  {{-- <li class="nav-item">
+                      <a href="{{ route('ujiantipe.index') }}"
+                          class="nav-link {{ request()->routeIs('ujian.*') ? 'active' : '' }}">
+                          <i class="far fa-circle nav-icon"></i>
+                          <p>Data Tipe</p>
+                      </a>
+                  </li> --}}
+              @endif
           </ul>
       </nav>
       <!-- /.sidebar-menu -->

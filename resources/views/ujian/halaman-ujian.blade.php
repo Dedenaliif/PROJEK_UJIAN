@@ -8,8 +8,8 @@
                     <h5 class="mb-0 fw-bold text-primary">{{ $ujian->judul }}</h5>
                 </div>
                 <div class="col-md-4 text-center">
-                    <div class="d-inline-block timer-box">
-                        <i class="bi bi-clock-history me-2"></i>Sisa Waktu: <span id="timer">01:29:45</span>
+                    <div class="d-inline-block ti                                  <i class="bi bi-clock-history me-2">
+                        </i>Sisa Waktu: <span id="timer">00:00:00</span>
                     </div>
                 </div>
                 <div class="col-md-4 text-end">
@@ -108,7 +108,7 @@
                         tombol konfirmasi.</p>
                     <div class="mt-4 d-flex gap-2 justify-content-center">
                         <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Batal</button>
-                        <form action="{{ route('ujianstart.selesai',$ujian->id) }}" method="post">
+                        <form action="{{ route('ujianstart.selesai', $ujian->id) }}" method="post">
                             @csrf
                             <button type="submit" class="btn btn-success px-4">Ya, Kumpulkan!</button>
                         </form>
@@ -129,6 +129,46 @@
                 jawaban: jawaban
             });
         });
+    </script>
+    @if (isset($waktuSelesai))
+        <script>
+            let waktuSelesai = {{ $waktuSelesai->timestamp }};
+            let waktuServer = {{ now()->timestamp }};
+        </script>
+    @endif
+    <script>
+        let interval;
+
+        function startTimer() {
+            let timerElement = document.getElementById('timer');
+
+            interval = setInterval(() => {
+                waktuServer++;
+
+                let sisa = waktuSelesai - waktuServer;
+
+                if (sisa <= 0) {
+                    clearInterval(interval); // 🔥 stop timer
+                    timerElement.innerHTML = "00:00:00";
+
+                    document.querySelector('form[action="{{ route('ujianstart.selesai', $ujian->id) }}"]')
+                        .submit();
+                    return;
+                }
+
+                let jam = Math.floor(sisa / 3600);
+                let menit = Math.floor((sisa % 3600) / 60);
+                let detik = sisa % 60;
+
+                timerElement.innerHTML =
+                    String(jam).padStart(2, '0') + ":" +
+                    String(menit).padStart(2, '0') + ":" +
+                    String(detik).padStart(2, '0');
+
+            }, 1000);
+        }
+
+        startTimer();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 @endsection

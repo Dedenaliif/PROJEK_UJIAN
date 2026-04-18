@@ -20,6 +20,6 @@ class Pertanyaan extends Model
 
     public function ujians()
     {
-        return $this->belongsTo(Ujian::class);
+        return $this->belongsTo(Ujian::class, 'ujian_id');
     }
 }

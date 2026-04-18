@@ -12,7 +12,9 @@ class SiswaController extends Controller
 {
     public function index()
     {
-        $siswas = Siswa::with(['user', 'kelas', 'jurusan'])->get();
+        $siswas = Siswa::with(['user', 'kelas', 'jurusan'])->whereHas('user', function ($query) {
+            $query->where('role', 'siswa');
+        })->get();
         // dd($siswas);
         return view('siswa.index', compact('siswas'));
     }

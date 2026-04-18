@@ -8,10 +8,12 @@
                     <h1>Data Ujian</h1>
                 </div>
 
-                <div class="col-sm-6 text-right">
-                    <a href="{{ route('ujian.create') }}" class="btn rounded-lg btn-primary btn-sm px-3 fw-bold">Buat
-                        Ujian</a>
-                </div>
+                @if (auth()->user()->role == 'admin')
+                    <div class="col-sm-6 text-right">
+                        <a href="{{ route('ujian.create') }}" class="btn rounded-lg btn-primary btn-sm px-3 fw-bold">Buat
+                            Ujian</a>
+                    </div>
+                @endif
             </div>
         </div>
     </section>
@@ -28,107 +30,107 @@
 
                 <!-- Card Body -->
                 <div class="card-body">
-                <table id="table-kelas" class="table table-bordered table-hover align-middle">
-                    <thead class="table-dark text-center">
-                        <tr>
-                            <th>No</th>
-                            <th class="text-start">Nama Ujian</th>
-                            <th>Durasi</th>
-                            <th>Percobaan</th>
-                            <th>Jadwal</th>
-                            <th>Soal</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($ujians as $key => $item)
-                        <tr>
-                            <td class="text-center">{{ $key + 1 }}</td>
+                    <table id="table-kelas" class="table table-bordered table-hover align-middle">
+                        <thead class="table-dark text-center">
+                            <tr>
+                                <th>No</th>
+                                <th class="text-start">Nama Ujian</th>
+                                <th>Durasi</th>
+                                <th>Percobaan</th>
+                                <th>Jadwal</th>
+                                <th>Soal</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($ujians as $key => $item)
+                                <tr>
+                                    <td class="text-center">{{ $key + 1 }}</td>
 
-                            {{-- NAMA --}}
-                            <td>
-                                <div class="fw-bold">{{ $item->judul }}</div>
-                                <small class="text-muted">{{ $item->deskripsi }}</small>
-                            </td>
+                                    {{-- NAMA --}}
+                                    <td>
+                                        <div class="fw-bold">{{ $item->judul }}</div>
+                                        <small class="text-muted">{{ $item->deskripsi }}</small>
+                                    </td>
 
-                            {{-- DURASI --}}
-                            <td class="text-center">
-                                <span class="badge bg-info">
-                                    {{ $item->waktu }} Menit
-                                </span>
-                            </td>
+                                    {{-- DURASI --}}
+                                    <td class="text-center">
+                                        <span class="badge bg-info">
+                                            {{ $item->waktu }} Menit
+                                        </span>
+                                    </td>
 
-                            {{-- PERCOBAAN --}}
-                            <td class="text-center">
-                                <span class="badge bg-secondary">
-                                    {{ $item->max_percobaan }}x
-                                </span>
-                            </td>
+                                    {{-- PERCOBAAN --}}
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">
+                                            {{ $item->max_percobaan }}x
+                                        </span>
+                                    </td>
 
-                            {{-- JADWAL --}}
-                            <td class="text-center">
-                                <small>
-                                    {{ $item->waktu_mulai }} <br> s/d <br> {{ $item->waktu_selesai }}
-                                </small>
-                            </td>
+                                    {{-- JADWAL --}}
+                                    <td class="text-center">
+                                        <small>
+                                            {{ $item->waktu_mulai }} <br> s/d <br> {{ $item->waktu_selesai }}
+                                        </small>
+                                    </td>
 
-                            {{-- SOAL --}}
-                            <td class="text-center">
-                                <div>
-                                    <span class="badge bg-primary">
-                                         {{ $item->total ?? 0 }}/30
-                                    </span>
-                                </div>
-                            </td>
+                                    {{-- SOAL --}}
+                                    <td class="text-center">
+                                        @if ($item->tipe == 'word')
+                                            <div>
+                                                <span class="badge bg-primary">
+                                                    Word: {{ $item->pertanyaans->count() ?? 0 }}/30
+                                                </span>
+                                            </div>
+                                            @elseif($item->tipe =='excel')
+                                            <div class="mt-1">
+                                                <span class="badge bg-success">
+                                                    Excel: {{ $item->pertanyaans->count() ?? 0 }}/30
+                                                </span>
+                                            </div>
+                                        @endif
+                                    </td>
 
-                            {{-- AKSI --}}
-                            <td class="text-center">
+                                    {{-- AKSI --}}
+                                    <td class="text-center">
 
-                                <div class="d-flex justify-content-center gap-2">
+                                        <div class="d-flex justify-content-center gap-2">
 
-                                   <a href="{{ route('soal.create', $item->id) }}"
-                                    class="btn btn-sm btn-success m-2">
-                                    Buat Soal
-                                    </a>
+                                            @if (auth()->user()->role == 'admin')
+                                                @if ($item->tipe == 'word')
+                                                    <a href="{{ url('/soal/' . $item->id . '?tipe=word') }}" id="btnWord"
+                                                        class="btn btn-primary px-4 m-2">
+                                                        Word
+                                                    </a>
+                                                @elseif($item->tipe == 'excel')
+                                                    <a href="{{ url('/soal/' . $item->id . '?tipe=excel') }}"
+                                                        id="btnExcel" class="btn btn-success px-4 m-2">
+                                                        Excel
+                                                    </a>
+                                                @else
+                                                    <span class="badge badge-secondary">No Action</span>
+                                                @endif
+                                            @endif
 
-                                    <a href="{{ route('ujianstart.start', $item->id) }}"
-                                        class="btn btn-sm btn-primary m-2">
-                                        Mulai
-                                    </a>
+                                            <a href="{{ route('ujianstart.show', $item->id) }}"
+                                                class="btn btn-warning m-2">
+                                                Pilih Tipe
+                                            </a>
 
-                                </div>
+                                        </div>
 
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
 
             </div>
         </div>
-        <!-- Modal Pilih Tipe Soal -->
-          <div class="modal fade" id="modalPilihSoal">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content text-center p-4">
 
-                    <h5 class="mb-3">Pilih Jenis Soal</h5>
 
-                    <div class="d-flex justify-content-center gap-3 mt-3">
-                        <button id="btnWord" class="btn btn-primary px-4 m-2">
-                            Word
-                        </button>
-
-                        <button id="btnExcel" class="btn btn-success px-4 m-2">
-                            Excel
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-    <script>
+        {{-- <script>
         let ujianId = null;
 
         document.querySelectorAll('.btn-pilih-soal').forEach(btn => {
@@ -137,16 +139,16 @@
             });
         });
 
-      document.getElementById('btnWord').onclick = function() {
-        if (!ujianId) return alert('Ujian tidak ditemukan');
-        window.location.href = `/soal/${ujianId}?tipe=word`;
+        document.getElementById('btnWord').onclick = function() {
+            if (!ujianId) return alert('Ujian tidak ditemukan');
+            window.location.href = `/soal/${ujianId}?tipe=word`;
         };
 
         document.getElementById('btnExcel').onclick = function() {
             if (!ujianId) return alert('Ujian tidak ditemukan');
             window.location.href = `/soal/${ujianId}?tipe=excel`;
         };
-    </script>
+    </script> --}}
 
     </section>
 @endsection

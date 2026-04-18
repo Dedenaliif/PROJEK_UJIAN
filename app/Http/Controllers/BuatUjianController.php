@@ -30,6 +30,7 @@ class BuatUjianController extends Controller
         // Validasi data yang diterima dari form
         $validatedData = request()->validate([
             'judul' => 'required',
+            'tipe' => 'required',
             'deskripsi' => 'nullable',
             'waktu' => 'required',
             'max_percobaan' => 'required',

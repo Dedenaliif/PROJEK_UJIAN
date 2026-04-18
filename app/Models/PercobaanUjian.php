@@ -10,8 +10,11 @@ class PercobaanUjian extends Model
         'user_id',
         'ujian_id',
         'siswa_id',
-        'skor_total',
-        'status'
+        'skor',
+        'status',
+        'waktu_mulai',
+        'waktu_selesai',
+        'percobaan_ke'
     ];
 
     public function ujian()

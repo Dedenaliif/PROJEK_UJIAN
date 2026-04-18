@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('max_percobaan')->default(3);
             $table->timestamp('waktu_mulai')->nullable();
             $table->timestamp('waktu_selesai')->nullable();
+            $table->enum('tipe', ['word', 'excel','-'])->default('-');
             $table->timestamps();
         });
     }

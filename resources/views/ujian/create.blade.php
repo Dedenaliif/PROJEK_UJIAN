@@ -52,6 +52,15 @@
                                 <label class="form-label fw-semibold my-2">Waktu Selesai</label>
                                 <input type="datetime-local" class="form-control" name="waktu_selesai">
                             </div>
+                            <div class="form-group col-md-6">
+                                <label>Tipe</label>
+                                <select name="tipe" id="tipe" class="form-control w-full">
+                                    <option selected disabled value="">-- Pilih Tipe --</option>
+                                    <option value="-">-</option>
+                                    <option value="word">Word</option>
+                                    <option value="excel">Excel</option>
+                                </select>
+                            </div>
                         </div>
 
 

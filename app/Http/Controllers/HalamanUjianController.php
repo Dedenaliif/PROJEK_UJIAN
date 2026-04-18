@@ -7,6 +7,7 @@ use App\Models\PercobaanUjian;
 use App\Models\Ujian;
 use App\Models\Pertanyaan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class HalamanUjianController extends Controller
@@ -36,6 +37,8 @@ class HalamanUjianController extends Controller
             ]
         );
 
+        $waktuMulai = Carbon::parse($percobaan->waktu_mulai);
+        $waktuSelesai = $waktuMulai->copy()->addMinutes($ujian->waktu);
         // 🔥 ambil jawaban user
         $jawabanUser = Jawaban::where('percobaan_ujian_id', $percobaan->id)
             ->pluck('pilihan_jawaban', 'pertanyaan_id');
@@ -46,7 +49,8 @@ class HalamanUjianController extends Controller
             'soal',
             'current',
             'percobaan',
-            'jawabanUser'
+            'jawabanUser',
+            'waktuSelesai',
         ));
     }
 

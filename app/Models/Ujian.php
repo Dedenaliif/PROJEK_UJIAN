@@ -12,7 +12,8 @@ class Ujian extends Model
         'waktu',
         'max_percobaan',
         'waktu_mulai',
-        'waktu_selesai'
+        'waktu_selesai',
+        'tipe'
     ];    
     public function pertanyaans()
     {

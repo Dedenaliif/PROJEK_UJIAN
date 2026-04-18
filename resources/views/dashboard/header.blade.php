@@ -182,3 +182,40 @@
           border-color: #0d6efd;
       }
   </style>
+  <style>
+      body {
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          background-color: #f8f9fa;
+      }
+
+      .selectable-card {
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border: 2px solid #e9ecef;
+          border-radius: 16px;
+      }
+
+      .selectable-card:hover {
+          border-color: #0d6efd;
+          background-color: #f0f7ff;
+      }
+
+      .selectable-card.active {
+          border-color: #0d6efd;
+          background-color: #f0f7ff;
+          box-shadow: 0 4px 15px rgba(13, 110, 253, 0.15);
+      }
+
+      .btn-start {
+          border-radius: 12px;
+          padding: 12px 40px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+      }
+
+      .instruction-box {
+          border-left: 4px solid #ffc107;
+          background-color: #fffbeb;
+      }
+  </style>
