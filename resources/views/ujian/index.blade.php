@@ -63,7 +63,11 @@
                                     {{-- PERCOBAAN --}}
                                     <td class="text-center">
                                         <span class="badge bg-secondary">
-                                            {{ $item->max_percobaan }}x
+                                            @if (auth()->user()->role == 'siswa')
+                                                {{ $item->jumlah_percobaan }} / {{ $item->max_percobaan }}
+                                            @else
+                                                {{ $item->max_percobaan }} x
+                                            @endif
                                         </span>
                                     </td>
 
@@ -82,7 +86,7 @@
                                                     Word: {{ $item->pertanyaans->count() ?? 0 }}/30
                                                 </span>
                                             </div>
-                                            @elseif($item->tipe =='excel')
+                                        @elseif($item->tipe == 'excel')
                                             <div class="mt-1">
                                                 <span class="badge bg-success">
                                                     Excel: {{ $item->pertanyaans->count() ?? 0 }}/30
@@ -98,8 +102,8 @@
 
                                             @if (auth()->user()->role == 'penguji')
                                                 @if ($item->tipe == 'word')
-                                                    <a href="{{ route('soal.create', ['ujian' => $item->id, 'tipe' => 'word']) }}" id="btnWord"
-                                                        class="btn btn-primary px-4 m-2">
+                                                    <a href="{{ route('soal.create', ['ujian' => $item->id, 'tipe' => 'word']) }}"
+                                                        id="btnWord" class="btn btn-primary px-4 m-2">
                                                         Word
                                                     </a>
                                                 @elseif($item->tipe == 'excel')
@@ -112,32 +116,35 @@
                                                 @endif
                                             @endif
 
-                                     @if (auth()->user()->role == 'siswa')
-
-                                            @if ($item->nilai_terakhir >= 75)
-                                                <button class="btn btn-success px-3">Selesai</button>
-
-                                            @elseif ($item->nilai_terakhir !== null)
-
-                                                <form action="{{ route('ujianstart.start', $item->id) }}" method="POST">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-warning px-3">
-                                                        Coba Lagi
-                                                    </button>
-                                                </form>
-
-                                            @else
-
-                                                <form action="{{ route('ujianstart.start', $item->id) }}" method="POST">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-primary px-3">
-                                                        Mulai
-                                                    </button>
-                                                </form>
-
+                                            @if (auth()->user()->role == 'siswa')
+                                                @if ($item->nilai_terakhir >= 75)
+                                                    <button class="btn btn-success px-3">Selesai</button>
+                                                @elseif ($item->nilai_terakhir !== null)
+                                                    <form action="{{ route('ujianstart.start', $item->id) }}"
+                                                        method="POST">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-warning px-3">
+                                                            Coba Lagi
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <form action="{{ route('ujianstart.start', $item->id) }}"
+                                                        method="POST">
+                                                        @csrf
+                                                        @if ($item->jumlah_percobaan >= $item->max_percobaan)
+                                                            <button type="submit" disabled class="btn-sm btn-primary px-3">
+                                                                Mulai
+                                                            </button>
+                                                        @else
+                                                            <button type="submit"  class="btn-sm btn-primary px-3">
+                                                                Mulai
+                                                            </button>
+                                                        @endif
+                                                    </form>
+                                                    <a class="btn-sm btn-secondary"
+                                                        href="{{ route('ujian.history', $item->id) }}">History</a>
+                                                @endif
                                             @endif
-
-                                        @endif
                                         </div>
 
                                     </td>

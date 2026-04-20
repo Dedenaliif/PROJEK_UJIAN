@@ -38,6 +38,10 @@ class HalamanUjianController extends Controller
         $waktuMulai = Carbon::parse($percobaan->waktu_mulai);
         $waktuSelesai = $waktuMulai->copy()->addMinutes($ujian->waktu);
 
+        if(now()->greaterThan($waktuSelesai)){
+            return $this->selesai($ujianId);
+        }
+
         $jawabanUser = Jawaban::where('percobaan_ujian_id', $percobaan->id)
             ->pluck('pilihan_jawaban', 'pertanyaan_id');
 

@@ -8,6 +8,8 @@ use App\Http\Controllers\{
     HalamanUjianController,
     BuatUjianController,
     BuatSoalController,
+    HalamanHistoryController,
+    HalamanMonitoringController,
     UserController,
     SiswaController,
     KelasController,
@@ -41,6 +43,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('siswa', SiswaController::class);
         Route::resource('kelas', KelasController::class);
         Route::resource('jurusan', JurusanController::class);
+        Route::get('/ujianmonitoring', [HalamanMonitoringController::class, 'index'])->name('ujian.monitoring');
     });
 
     /*
@@ -63,7 +66,6 @@ Route::middleware('auth')->group(function () {
             Route::put('/{id}', [BuatSoalController::class, 'update'])->name('soal.update');
             Route::delete('/{ujian}/{id}', [BuatSoalController::class, 'destroy'])->name('soal.destroy');
         });
-
     });
 
     /*
@@ -73,7 +75,7 @@ Route::middleware('auth')->group(function () {
     | Isi data diri + ujian
     */
     Route::middleware('role:siswa')->prefix('siswa')->group(function () {
-
+        Route::get('/ujianhistory/{id}/', [HalamanHistoryController::class, 'history'])->name('ujian.history');
         // data diri
         Route::get('/datadiri', [DataDiriController::class, 'index'])->name('datadiri.index');
         Route::post('/datadiri', [DataDiriController::class, 'store'])->name('datadiri.store');
@@ -89,7 +91,6 @@ Route::middleware('auth')->group(function () {
 
         // hasil ujian
         Route::get('/ujian/{ujian}/hasil', [HalamanUjianController::class, 'hasil'])->name('ujian.hasil');
-
     });
 
     /*
@@ -97,8 +98,5 @@ Route::middleware('auth')->group(function () {
     | PENGAWAS
     |--------------------------------------------------------------------------
     */
-    Route::middleware('role:pengawas')->prefix('pengawas')->group(function () {
-
-    });
-
+    Route::middleware('role:pengawas')->prefix('pengawas')->group(function () {});
 });

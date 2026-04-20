@@ -219,3 +219,22 @@
           background-color: #fffbeb;
       }
   </style>
+  <style>
+      .attempt-number {
+          width: 40px;
+          height: 40px;
+          background-color: #f8f9fa;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          color: #6c757d;
+          border: 2px solid #dee2e6;
+      }
+
+      .best-attempt {
+          background-color: #fffdec;
+          border: 1px solid #ffecb5;
+      }
+  </style>

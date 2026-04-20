@@ -14,7 +14,7 @@ class PertanyaanSeeder extends Seeder
 
         foreach ($ujians as $ujian) {
 
-            for ($i = 1; $i <= 30; $i++) {
+            for ($i = 1; $i <= 5; $i++) {
 
                 Pertanyaan::create([
                     'ujian_id' => $ujian->id,

@@ -17,6 +17,7 @@ class PercobaanUjian extends Model
         'percobaan_ke'
     ];
 
+
     public function ujian()
     {
         return $this->belongsTo(Ujian::class);
@@ -31,4 +32,9 @@ class PercobaanUjian extends Model
     {
         return $this->hasMany(Jawaban::class, 'percobaan_ujian_id');
     }
+    protected $cast = [
+        'waktu_mulai' => 'datetime',
+        'waktu_selesai' => 'datetime',
+        // 'skor' => 'float',
+    ];
 }
