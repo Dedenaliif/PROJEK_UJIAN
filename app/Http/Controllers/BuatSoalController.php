@@ -33,29 +33,38 @@ class BuatSoalController extends Controller
 
     public function store(Request $request, $ujianId)
     {
-        $ujian = Ujian::findOrFail($ujianId);
+        if (!$request->has('text_pertanyaan') || empty($request->text_pertanyaan)) {
+            return back()->with('error', 'Soal tidak boleh kosong!');
+        }
 
-        // hitung soal yang sudah ada
-        $jumlahSoalSekarang = Pertanyaan::where('ujian_id', $ujianId)->count();
-
-        // jumlah input baru
         $jumlahInput = count($request->text_pertanyaan);
 
-        // cek kalau melebihi 30
-        if (($jumlahSoalSekarang + $jumlahInput) > 30) {
+        $jumlahSoalSekarang = Pertanyaan::where('ujian_id', $ujianId)->count();
 
+        if (($jumlahSoalSekarang + $jumlahInput) > 30) {
             $sisa = 30 - $jumlahSoalSekarang;
 
-            return redirect()->back()->with('error',
+            return back()->with('error',
                 $sisa > 0
-                    ? "Soal maksimal 30. Kamu hanya bisa menambah $sisa soal lagi."
-                    : "Soal sudah mencapai batas maksimal (30 soal)."
+                    ? "Maksimal 30 soal. Sisa $sisa lagi."
+                    : "Soal sudah penuh (30)"
             );
         }
 
-        // simpan soal
         for ($i = 0; $i < $jumlahInput; $i++) {
-            \App\Models\Pertanyaan::create([
+
+            if (
+                empty($request->text_pertanyaan[$i]) ||
+                empty($request->opsi_a[$i]) ||
+                empty($request->opsi_b[$i]) ||
+                empty($request->opsi_c[$i]) ||
+                empty($request->opsi_d[$i]) ||
+                !isset($request->jawaban_benar[$i])
+            ) {
+                return back()->with('error', 'Semua field soal wajib diisi!');
+            }
+
+            Pertanyaan::create([
                 'ujian_id' => $ujianId,
                 'text_pertanyaan' => $request->text_pertanyaan[$i],
                 'opsi_a' => $request->opsi_a[$i],
@@ -66,7 +75,7 @@ class BuatSoalController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success','Soal berhasil disimpan');
+        return back()->with('success', 'Soal berhasil disimpan');
     }
 
     public function edit($ujianId, $id)

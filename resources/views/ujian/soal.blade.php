@@ -81,47 +81,65 @@
 
             @else
             {{-- ================= CREATE MODE ================= --}}
-            <h5>Tambah Banyak Soal</h5>
+            <h5 class="mb-3">Tambah Banyak Soal</h5>
 
             <form action="{{ route('soal.store', $ujian->id) }}" method="POST">
-                @csrf
+            @csrf
 
+            <div id="form-container">
 
+                @php
+                    $startIndex = $soals->count();
+                @endphp
 
-                <div id="form-container">
+                <div class="soal-item card mb-3 shadow-sm">
+                    <div class="card-body">
 
-                    <div class="soal-item border p-3 mb-3">
-                        <h6>Soal 1</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0">Soal {{ $startIndex + 1 }}</h6>
+                            <button type="button" class="btn btn-danger btn-sm hapus-soal">
+                                Hapus
+                            </button>
+                        </div>
 
-                        <textarea name="text_pertanyaan[]" class="form-control mb-2" required></textarea>
+                        <textarea name="text_pertanyaan[]" class="form-control mb-3" placeholder="Masukkan pertanyaan..." required></textarea>
 
                         @foreach(['A','B','C','D'] as $opsi)
                         <div class="input-group mb-2">
                             <span class="input-group-text">{{ $opsi }}</span>
-                            <input type="text" name="opsi_{{ strtolower($opsi) }}[]" class="form-control" required>
+
+                            <input type="text"
+                                name="opsi_{{ strtolower($opsi) }}[]"
+                                class="form-control"
+                                placeholder="Opsi {{ $opsi }}"
+                                required>
 
                             <div class="input-group-text">
-                                <input type="radio" name="jawaban_benar[0]" value="{{ $opsi }}" required>
+                                <input type="radio"
+                                    name="jawaban_benar[0]"
+                                    value="{{ $opsi }}"
+                                    required>
                             </div>
                         </div>
                         @endforeach
-                    </div>
 
+                    </div>
                 </div>
 
-                <button type="button" id="tambah-soal" class="btn btn-success mb-3">
-                    + Tambah Soal
-                </button>
+            </div>
 
-                <br>
+            <button type="button" id="tambah-soal" class="btn btn-success mb-3">
+                + Tambah Soal
+            </button>
 
-                <button class="btn btn-primary">
-                    Simpan Semua Soal
-                </button>
+            <br>
+
+            <button class="btn btn-primary">
+                Simpan Semua Soal
+            </button>
 
             </form>
-            @endif
-
+        @endif
         </div>
     </div>
 
@@ -164,58 +182,81 @@
 </div>
 
 {{-- JAVASCRIPT --}}
+
 <script>
-let index = 1;
+let baseIndex = {{ $soals->count() }};
 
-document.getElementById('tambah-soal')?.addEventListener('click', function () {
 
-    let maxSoal = {{ $soals->count() }};
-    let index = maxSoal;
+function refreshSoal() {
+    let items = document.querySelectorAll('.soal-item');
 
-    document.getElementById('tambah-soal')?.addEventListener('click', function () {
+    items.forEach((item, i) => {
 
-        if (index >= 30) {
-            alert('Soal sudah mencapai 30');
-            return;
-        }
 
-        index++;
+        item.querySelector('h6').innerText = 'Soal ' + (baseIndex + i + 1);
+
+
+        item.querySelectorAll('input[type=radio]').forEach(radio => {
+            radio.name = `jawaban_benar[${i}]`;
+        });
+
+    });
+}
+
+// tambah soal
+document.getElementById('tambah-soal').addEventListener('click', function () {
+
+    let totalForm = document.querySelectorAll('.soal-item').length;
+
+    if (baseIndex + totalForm >= 30) {
+        alert('Maksimal 30 soal');
+        return;
+    }
 
     let html = `
-    <div class="soal-item border p-3 mb-3">
-        <h6>Soal ${index + 1}</h6>
+    <div class="soal-item card mb-3 shadow-sm">
+        <div class="card-body">
 
-        <textarea name="text_pertanyaan[]" class="form-control mb-2" required></textarea>
-
-        ${['A','B','C','D'].map(opsi => `
-            <div class="input-group mb-2">
-                <span class="input-group-text">${opsi}</span>
-                <input type="text" name="opsi_${opsi.toLowerCase()}[]" class="form-control" required>
-
-                <div class="input-group-text">
-                    <input type="radio" name="jawaban_benar[${index}]" value="${opsi}" required>
-                </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0"></h6>
+                <button type="button" class="btn btn-danger btn-sm hapus-soal">
+                    Hapus
+                </button>
             </div>
-        `).join('')}
 
-        <button type="button" class="btn btn-danger btn-sm mt-2 hapus-soal">
-            Hapus Soal
-        </button>
+            <textarea name="text_pertanyaan[]" class="form-control mb-3" placeholder="Masukkan pertanyaan..." required></textarea>
+
+            ${['A','B','C','D'].map(opsi => `
+                <div class="input-group mb-2">
+                    <span class="input-group-text">${opsi}</span>
+                    <input type="text" name="opsi_${opsi.toLowerCase()}[]" class="form-control" required>
+
+                    <div class="input-group-text">
+                        <input type="radio" value="${opsi}" required>
+                    </div>
+                </div>
+            `).join('')}
+
+        </div>
     </div>
     `;
 
     document.getElementById('form-container').insertAdjacentHTML('beforeend', html);
 
-    index++;
+    refreshSoal();
 });
 
+// hapus soal
 document.addEventListener('click', function(e) {
     if (e.target.classList.contains('hapus-soal')) {
         e.target.closest('.soal-item').remove();
-        index--;
+
+        refreshSoal();
     }
 });
-</script>
 
+
+refreshSoal();
+</script>
 
 @endsection
