@@ -158,4 +158,20 @@
         </div>
 
     </section>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+    setInterval(function () {
+
+        $.get("{{ route('ujian.cekStatus') }}", function (res) {
+
+            if (res.redirect) {
+                window.location.href = res.redirect;
+            }
+
+        });
+
+    }, 1000);
+    </script>
 @endsection

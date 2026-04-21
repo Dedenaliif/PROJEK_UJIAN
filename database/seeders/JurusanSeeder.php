@@ -13,15 +13,19 @@ class JurusanSeeder extends Seeder
     public function run(): void
     {
         \App\Models\Jurusan::create([
-            'nama_jurusan' => 'RPL',
-        ]);
-
-        \App\Models\Jurusan::create([
             'nama_jurusan' => 'TKJ',
         ]);
 
         \App\Models\Jurusan::create([
-            'nama_jurusan' => 'Multimedia',
+            'nama_jurusan' => 'MPLB',
+        ]);
+
+        \App\Models\Jurusan::create([
+            'nama_jurusan' => 'AKL',
+        ]);
+
+        \App\Models\Jurusan::create([
+            'nama_jurusan' => 'PR',
         ]);
     }
 }

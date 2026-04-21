@@ -90,6 +90,9 @@ Route::middleware('auth')->group(function () {
 
         // hasil ujian
         Route::get('/ujian/{ujian}/hasil', [HalamanUjianController::class, 'hasil'])->name('ujian.hasil');
+
+        // check status ujian
+        Route::get('/cek-status-ujian', [BuatUjianController::class, 'checkStatus'])->name('ujian.cekStatus');
     });
 
     /*
@@ -102,4 +105,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/monitoring',[HalamanMonitoringController::class, 'index'])->name('monitoring.index');
         Route::get('/ujianmonitoring/{id}', [HalamanMonitoringController::class, 'monitor'])->name('ujian.monitoring');
     });
+
+    Route::get('/monitoring/{id}/data', [HalamanMonitoringController::class, 'getData']);
 });

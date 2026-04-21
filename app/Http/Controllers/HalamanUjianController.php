@@ -13,6 +13,23 @@ use Illuminate\Support\Facades\Auth;
 
 class HalamanUjianController extends Controller
 {
+    private function forceSelesai($percobaan)
+    {
+        $jawaban = Jawaban::where('percobaan_ujian_id', $percobaan->id)->get();
+
+        $totalSkor = $jawaban->sum('skor');
+
+        $percobaan->update([
+            'status' => 'selesai',
+            'waktu_selesai' => now(),
+            'skor' => $totalSkor,
+            'nilai' => $totalSkor
+        ]);
+
+        return redirect()->route('ujian.hasil', $percobaan->ujian_id)
+            ->with('info', 'Waktu habis, ujian otomatis diselesaikan');
+    }
+
     public function show(Request $request, $ujianId)
     {
         $ujian = Ujian::findOrFail($ujianId);
@@ -28,6 +45,7 @@ class HalamanUjianController extends Controller
         $percobaan = PercobaanUjian::where('user_id', Auth::id())
             ->where('ujian_id', $ujianId)
             ->where('status', 'sedang dikerjakan')
+            ->latest()
             ->first();
 
         if (!$percobaan) {
@@ -38,8 +56,9 @@ class HalamanUjianController extends Controller
         $waktuMulai = Carbon::parse($percobaan->waktu_mulai);
         $waktuSelesai = $waktuMulai->copy()->addMinutes($ujian->waktu);
 
-        if(now()->greaterThan($waktuSelesai)){
-            return $this->selesai($ujianId);
+        // 🔥 FIX: AUTO SELESAI KALO WAKTU HABIS
+        if (now()->greaterThan($waktuSelesai)) {
+            return $this->forceSelesai($percobaan);
         }
 
         $jawabanUser = Jawaban::where('percobaan_ujian_id', $percobaan->id)
@@ -60,6 +79,28 @@ class HalamanUjianController extends Controller
         $userId = Auth::id();
         $ujian = Ujian::findOrFail($ujianId);
 
+        // 🔥 CEK PERCOBAAN YANG MASIH AKTIF
+        $existing = PercobaanUjian::where('user_id', $userId)
+            ->where('ujian_id', $ujianId)
+            ->where('status', 'sedang dikerjakan')
+            ->latest()
+            ->first();
+
+        if ($existing) {
+
+            $waktuMulai = Carbon::parse($existing->waktu_mulai);
+            $waktuSelesai = $waktuMulai->copy()->addMinutes($ujian->waktu);
+
+            // 🔥 JIKA SUDAH HABIS → AUTO SELESAI
+            if (now()->greaterThan($waktuSelesai)) {
+                return $this->forceSelesai($existing);
+            }
+
+            // 🔥 MASIH AKTIF → LANJUTKAN
+            return redirect()->route('ujianstart.show', $ujianId);
+        }
+
+        // 🔥 HITUNG PERCOBAAN
         $jumlahPercobaan = PercobaanUjian::where('user_id', $userId)
             ->where('ujian_id', $ujianId)
             ->count();
@@ -69,15 +110,7 @@ class HalamanUjianController extends Controller
                 ->with('error', 'Percobaan habis');
         }
 
-        $existing = PercobaanUjian::where('user_id', $userId)
-            ->where('ujian_id', $ujianId)
-            ->where('status', 'sedang dikerjakan')
-            ->first();
-
-        if ($existing) {
-            return redirect()->route('ujianstart.show', $ujianId);
-        }
-
+        // 🔥 BUAT BARU
         PercobaanUjian::create([
             'user_id' => $userId,
             'ujian_id' => $ujianId,
@@ -111,7 +144,7 @@ class HalamanUjianController extends Controller
         $totalSoal = Pertanyaan::where('ujian_id', $ujianId)->count();
         $skorPerSoal = 100 / $totalSoal;
 
-        // 🔥 update manual biar pasti gak double
+
         $data = Jawaban::where('percobaan_ujian_id', $percobaan->id)
             ->where('pertanyaan_id', $soal->id)
             ->first();
@@ -133,13 +166,14 @@ class HalamanUjianController extends Controller
         }
 
         return response()->json(['status' => 'ok']);
+
     }
 
     public function selesai($ujianId)
     {
         $userId = Auth::id();
 
-        // 🔥 ambil percobaan aktif
+
         $percobaan = PercobaanUjian::where('user_id', $userId)
             ->where('ujian_id', $ujianId)
             ->where('status', 'sedang dikerjakan')
@@ -151,25 +185,20 @@ class HalamanUjianController extends Controller
                 ->with('error', 'Percobaan tidak ditemukan');
         }
 
-        // 🔥 ambil semua jawaban
         $jawaban = Jawaban::where('percobaan_ujian_id', $percobaan->id)->get();
 
         if ($jawaban->count() == 0) {
             return redirect()->back()->with('error', 'Belum ada jawaban');
         }
 
-        // 🔥 hitung total skor
         $totalSkor = $jawaban->sum('skor');
 
-        // 🔥 DEBUG WAJIB COBA SEKALI
-        // dd($jawaban->toArray(), $totalSkor);
 
-        // 🔥 UPDATE KE DB (INI YANG PENTING)
         $percobaan->update([
             'status' => 'selesai',
             'waktu_selesai' => now(),
-            'skor' => $totalSkor,      // 🔥 isi juga skor
-            'nilai' => $totalSkor      // 🔥 ini yang dipakai di hasil
+            'skor' => $totalSkor,
+            'nilai' => $totalSkor
         ]);
 
         return redirect()->route('ujian.hasil', $ujianId);

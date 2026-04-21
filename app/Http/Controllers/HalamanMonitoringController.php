@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Pertanyaan;
 use App\Models\Siswa;
 use App\Models\Ujian;
-use Illuminate\Http\Request;
+// use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class HalamanMonitoringController extends Controller
@@ -43,7 +43,7 @@ class HalamanMonitoringController extends Controller
         ];
 
         foreach ($siswas as $siswa) {
-            // Gunakan null-safe operator ?-> 
+            // Gunakan null-safe operator ?->
             $percobaan = $siswa->user?->percobaanUjians?->first();
 
             if (!$percobaan) {
