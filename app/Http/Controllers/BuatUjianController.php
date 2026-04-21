@@ -46,7 +46,7 @@ class BuatUjianController extends Controller
         ]);
 
         // Simpan data ujian ke database
-        $ujian = \App\Models\Ujian::create($validatedData);
+        $ujian = Ujian::create($validatedData);
 
         // Redirect ke halaman daftar ujian atau halaman detail ujian
         return redirect()->route('ujian.create')->with('success', 'Ujian berhasil dibuat!');

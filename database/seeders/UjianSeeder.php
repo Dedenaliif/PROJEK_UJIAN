@@ -13,7 +13,7 @@ class UjianSeeder extends Seeder
         Ujian::create([
             'judul' => 'Ujian Microsoft Word',
             'deskripsi' => 'Tes kemampuan Microsoft Word',
-            'waktu' => 30,
+            'waktu' => 1,
             'max_percobaan' => 3,
             'waktu_mulai' => Carbon::now(),
             'waktu_selesai' => Carbon::now()->addDays(7),
@@ -23,7 +23,7 @@ class UjianSeeder extends Seeder
         Ujian::create([
             'judul' => 'Ujian Microsoft Excel',
             'deskripsi' => 'Tes kemampuan Microsoft Excel',
-            'waktu' => 30,
+            'waktu' => 1,
             'max_percobaan' => 3,
             'waktu_mulai' => Carbon::now(),
             'waktu_selesai' => Carbon::now()->addDays(7),

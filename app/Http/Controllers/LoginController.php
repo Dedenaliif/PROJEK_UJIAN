@@ -36,19 +36,21 @@ class LoginController extends Controller
                 // ================= PENGUJI =================
                 case 'penguji':
                     return redirect()->to('/penguji/ujian');
+                case 'pengawas':
+                    return redirect()->to('/pengawas/monitoring');
 
                 // ================= SISWA =================
                 case 'siswa':
 
                     // cek data diri
-                    $sudahIsi = Siswa::where('user_id', $user->id)->exists();
+                    // $sudahIsi = Siswa::where('user_id', $user->id)->exists();
 
-                    if (!$sudahIsi) {
-                        return redirect()->route('datadiri.index')
-                            ->with('warning', 'Silakan lengkapi data diri terlebih dahulu!');
-                    }
+                    // if (!$sudahIsi) {
+                    //     return redirect()->route('datadiri.index')
+                    //         ->with('warning', 'Silakan lengkapi data diri terlebih dahulu!');
+                    // }
 
-                    return redirect()->to('/siswa/ujian');
+                    return redirect()->to('/dashboard');
 
                 // ================= DEFAULT =================
                 default:

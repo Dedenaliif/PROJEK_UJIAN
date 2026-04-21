@@ -43,15 +43,14 @@ Route::middleware('auth')->group(function () {
         Route::resource('siswa', SiswaController::class);
         Route::resource('kelas', KelasController::class);
         Route::resource('jurusan', JurusanController::class);
-        Route::get('/ujianmonitoring', [HalamanMonitoringController::class, 'index'])->name('ujian.monitoring');
     });
 
     /*
-    |--------------------------------------------------------------------------
-    | PENGUJI
-    |--------------------------------------------------------------------------
-    | Membuat soal
-    */
+        |--------------------------------------------------------------------------
+        | PENGUJI
+        |--------------------------------------------------------------------------
+        | Membuat soal
+        */
     Route::middleware('role:penguji')->prefix('penguji')->group(function () {
 
         Route::get('/ujian', [BuatUjianController::class, 'index'])->name('ujian.index');
@@ -69,11 +68,11 @@ Route::middleware('auth')->group(function () {
     });
 
     /*
-    |--------------------------------------------------------------------------
-    | SISWA
-    |--------------------------------------------------------------------------
-    | Isi data diri + ujian
-    */
+                |--------------------------------------------------------------------------
+                | SISWA
+                |--------------------------------------------------------------------------
+                | Isi data diri + ujian
+                */
     Route::middleware('role:siswa')->prefix('siswa')->group(function () {
         Route::get('/ujianhistory/{id}/', [HalamanHistoryController::class, 'history'])->name('ujian.history');
         // data diri
@@ -94,9 +93,13 @@ Route::middleware('auth')->group(function () {
     });
 
     /*
-    |--------------------------------------------------------------------------
-    | PENGAWAS
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware('role:pengawas')->prefix('pengawas')->group(function () {});
+                    |--------------------------------------------------------------------------
+                    | PENGAWAS
+                    |--------------------------------------------------------------------------
+                    */
+    Route::middleware('role:pengawas')->prefix('pengawas')->group(function () {
+
+    Route::get('/monitoring',[HalamanMonitoringController::class, 'index'])->name('monitoring.index');
+        Route::get('/ujianmonitoring/{id}', [HalamanMonitoringController::class, 'monitor'])->name('ujian.monitoring');
+    });
 });

@@ -51,8 +51,8 @@
                                 </td>
                                 <td><span class=" {{ $item->skor >= 75 ? 'badge bg-success' : 'badge bg-danger' }}">{{ $item->skor >= 75 ? 'LULUS' : 'REMEDIAL' }}</span>
                                 </td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-dark px-3">Lihat Jawaban</button>
+                                <td class="text-center">-
+                                    {{-- <button class="btn btn-sm btn-dark px-3">Lihat Jawaban</button> --}}
                                 </td>
                             </tr>
                         @endforeach

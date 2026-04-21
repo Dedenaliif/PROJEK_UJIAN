@@ -30,7 +30,7 @@ class PercobaanUjian extends Model
 
     public function jawabans()
     {
-        return $this->hasMany(Jawaban::class, 'percobaan_ujian_id');
+        return $this->hasMany(Jawaban::class);
     }
     protected $cast = [
         'waktu_mulai' => 'datetime',

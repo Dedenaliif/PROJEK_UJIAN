@@ -28,7 +28,17 @@
 
                 <!-- Default box -->
                 <div class="card">
-                    @yield('content')
+                    @if (auth()->user()->role == 'siswa' && !auth()->user()->siswa)
+                        <div class="card-body text-center">
+                            <h5 class="mb-3">Data diri belum lengkap</h5>
+                            <p>Silakan isi data diri terlebih dahulu sebelum melanjutkan.</p>
+                            <a href="{{ route('datadiri.index') }}" class="btn btn-primary">
+                                Isi Data Diri
+                            </a>
+                        </div>
+                    @else
+                        @yield('content')
+                    @endif
                 </div>
                 <!-- /.card -->
 

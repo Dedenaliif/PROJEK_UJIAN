@@ -94,5 +94,18 @@
                 </li>
 
             @endif
+            @if (auth()->user()->role == 'pengawas')
+
+                <li class="nav-header text-uppercase">Menu Utama</li>
+
+                <li class="nav-item">
+                    <a href="{{ url('pengawas/monitoring') }}"
+                        class="nav-link {{ request()->url('pengawas/monitoring') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-pencil-alt"></i>
+                        <p>Monitoring Ujian</p>
+                    </a>
+                </li>
+
+            @endif
 
 </div>
