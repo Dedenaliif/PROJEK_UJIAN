@@ -34,14 +34,9 @@ class HalamanUjianController extends Controller
     {
         $ujian = Ujian::findOrFail($ujianId);
 
-        $soals = Pertanyaan::where('ujian_id', $ujianId)->get();
-        $total = $soals->count();
+        $current = (int) $request->get('no', 1);
 
-        $current = $request->get('no', 1);
-        $current = max(1, min($current, $total));
-
-        $soal = $soals[$current - 1] ?? null;
-
+        // 🔥 ambil percobaan aktif
         $percobaan = PercobaanUjian::where('user_id', Auth::id())
             ->where('ujian_id', $ujianId)
             ->where('status', 'sedang dikerjakan')
@@ -53,10 +48,30 @@ class HalamanUjianController extends Controller
                 ->with('error', 'Silakan mulai ujian terlebih dahulu');
         }
 
+        // 🔥 ambil urutan soal dari session
+        $soalIds = session('soal_ujian_'.$percobaan->id);
+
+        if (!$soalIds) {
+            $soalIds = Pertanyaan::where('ujian_id', $ujianId)
+                ->pluck('id')
+                ->toArray();
+        }
+
+        // 🔥 ambil semua soal sesuai urutan
+        $soals = Pertanyaan::whereIn('id', $soalIds)
+            ->orderByRaw("FIELD(id," . implode(',', $soalIds) . ")")
+            ->get();
+
+        $total = $soals->count();
+
+        $current = max(1, min($current, $total));
+
+        $soal = $soals[$current - 1] ?? null;
+
+        // 🔥 timer
         $waktuMulai = Carbon::parse($percobaan->waktu_mulai);
         $waktuSelesai = $waktuMulai->copy()->addMinutes($ujian->waktu);
 
-        // 🔥 FIX: AUTO SELESAI KALO WAKTU HABIS
         if (now()->greaterThan($waktuSelesai)) {
             return $this->forceSelesai($percobaan);
         }
@@ -79,7 +94,6 @@ class HalamanUjianController extends Controller
         $userId = Auth::id();
         $ujian = Ujian::findOrFail($ujianId);
 
-        // 🔥 CEK PERCOBAAN YANG MASIH AKTIF
         $existing = PercobaanUjian::where('user_id', $userId)
             ->where('ujian_id', $ujianId)
             ->where('status', 'sedang dikerjakan')
@@ -91,16 +105,13 @@ class HalamanUjianController extends Controller
             $waktuMulai = Carbon::parse($existing->waktu_mulai);
             $waktuSelesai = $waktuMulai->copy()->addMinutes($ujian->waktu);
 
-            // 🔥 JIKA SUDAH HABIS → AUTO SELESAI
             if (now()->greaterThan($waktuSelesai)) {
                 return $this->forceSelesai($existing);
             }
 
-            // 🔥 MASIH AKTIF → LANJUTKAN
             return redirect()->route('ujianstart.show', $ujianId);
         }
 
-        // 🔥 HITUNG PERCOBAAN
         $jumlahPercobaan = PercobaanUjian::where('user_id', $userId)
             ->where('ujian_id', $ujianId)
             ->count();
@@ -110,14 +121,21 @@ class HalamanUjianController extends Controller
                 ->with('error', 'Percobaan habis');
         }
 
-        // 🔥 BUAT BARU
-        PercobaanUjian::create([
+        $percobaan = PercobaanUjian::create([
             'user_id' => $userId,
             'ujian_id' => $ujianId,
             'percobaan_ke' => $jumlahPercobaan + 1,
             'waktu_mulai' => now(),
             'status' => 'sedang dikerjakan'
         ]);
+
+        // ACAK SOAL
+        $soalIds = Pertanyaan::where('ujian_id', $ujianId)
+            ->pluck('id')
+            ->shuffle()
+            ->toArray();
+
+        session(['soal_ujian_'.$percobaan->id => $soalIds]);
 
         return redirect()->route('ujianstart.show', $ujianId);
     }
