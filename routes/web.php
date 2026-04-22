@@ -56,7 +56,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/ujian', [BuatUjianController::class, 'index'])->name('ujian.index');
         Route::get('/ujian/create', [BuatUjianController::class, 'create'])->name('ujian.create');
         Route::post('/ujian', [BuatUjianController::class, 'store'])->name('ujian.store');
-
+        Route::get('/ujian/report/{ujian}', [BuatUjianController::class, 'report'])
+            ->name('ujian.report');
+            Route::get('/ujian/export/{ujian}', [BuatUjianController::class,'exportCSV'])->name('ujian.export');
 
         Route::prefix('soal')->group(function () {
             Route::get('/{ujian}', [BuatSoalController::class, 'create'])->name('soal.create');
@@ -102,7 +104,7 @@ Route::middleware('auth')->group(function () {
                     */
     Route::middleware('role:pengawas')->prefix('pengawas')->group(function () {
 
-    Route::get('/monitoring',[HalamanMonitoringController::class, 'index'])->name('monitoring.index');
+        Route::get('/monitoring', [HalamanMonitoringController::class, 'index'])->name('monitoring.index');
         Route::get('/ujianmonitoring/{id}', [HalamanMonitoringController::class, 'monitor'])->name('ujian.monitoring');
     });
 });

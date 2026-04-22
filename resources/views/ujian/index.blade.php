@@ -101,6 +101,10 @@
                                         <div class="d-flex justify-content-center gap-2">
 
                                             @if (auth()->user()->role == 'penguji')
+                                                <a href="{{ route('ujian.report', $item->id) }}"
+                                                    class="btn btn-info btn-sm px-3 fw-bold">
+                                                    Report
+                                                </a>
                                                 @if ($item->tipe == 'word')
                                                     <a href="{{ route('soal.create', ['ujian' => $item->id, 'tipe' => 'word']) }}"
                                                         id="btnWord" class="btn btn-primary px-4 m-2">
@@ -112,7 +116,15 @@
                                                         Excel
                                                     </a>
                                                 @else
-                                                    <span class="badge badge-secondary">No Action</span>
+                                                    @if (auth()->user()->role == 'penguji')
+                                                        <div class="col-sm-6 text-right">
+                                                            <a href="{{ route('ujian.create') }}"
+                                                                class="btn btn-primary btn-sm px-3 fw-bold">
+                                                                Buat Ujian
+                                                            </a>
+                                                        </div>
+                                                    @endif
+                                                    {{-- <span class="badge badge-secondary">No Action</span> --}}
                                                 @endif
                                             @endif
 
@@ -136,7 +148,7 @@
                                                                 Mulai
                                                             </button>
                                                         @else
-                                                            <button type="submit"  class="btn-sm btn-primary px-3">
+                                                            <button type="submit" class="btn-sm btn-primary px-3">
                                                                 Mulai
                                                             </button>
                                                         @endif
@@ -162,16 +174,16 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
-    setInterval(function () {
+        setInterval(function() {
 
-        $.get("{{ route('ujian.cekStatus') }}", function (res) {
+            $.get("{{ route('ujian.cekStatus') }}", function(res) {
 
-            if (res.redirect) {
-                window.location.href = res.redirect;
-            }
+                if (res.redirect) {
+                    window.location.href = res.redirect;
+                }
 
-        });
+            });
 
-    }, 1000);
+        }, 1000);
     </script>
 @endsection
