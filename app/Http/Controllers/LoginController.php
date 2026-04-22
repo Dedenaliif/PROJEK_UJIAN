@@ -50,7 +50,7 @@ class LoginController extends Controller
                     //         ->with('warning', 'Silakan lengkapi data diri terlebih dahulu!');
                     // }
 
-                    return redirect()->to('/dashboard');
+                    return redirect()->to('/siswa/datadiri');
 
                 // ================= DEFAULT =================
                 default:

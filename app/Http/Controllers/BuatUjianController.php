@@ -14,6 +14,10 @@ class BuatUjianController extends Controller
 {
     public function checkStatus()
     {
+        if (Auth::user()->role !== 'siswa') {
+            return response()->json(['redirect' => null]);
+        }
+
         $userId = Auth::id();
 
         $aktif = PercobaanUjian::where('user_id', $userId)
@@ -52,7 +56,6 @@ class BuatUjianController extends Controller
     {
         $userId = Auth::id();
 
-        // 🔥 CEK UJIAN AKTIF
         $aktif = PercobaanUjian::where('user_id', $userId)
             ->where('status', 'sedang dikerjakan')
             ->get();
@@ -82,12 +85,10 @@ class BuatUjianController extends Controller
             }
         }
 
-        // 🔥 REDIRECT KE HASIL JIKA ADA YANG EXPIRED
         if ($redirectHasil) {
             return redirect()->route('ujian.hasil', $redirectHasil);
         }
 
-        // 🔥 LOAD DATA UJIAN NORMAL
         $ujians = Ujian::withCount([
             'percobaanUjians as jumlah_percobaan' => function ($q) use ($userId) {
                 $q->where('user_id', $userId);
@@ -111,7 +112,7 @@ class BuatUjianController extends Controller
         ])
             ->where('ujian_id', $ujianId);
 
-        // 🔥 FILTER STATUS
+        // FILTER STATUS
         if (request('status') == 'lulus') {
             $query->where('skor', '>=', 75);
         } elseif (request('status') == 'remedial') {
@@ -119,7 +120,7 @@ class BuatUjianController extends Controller
         }
 
         $data = $query->get();
-        // 🔥 Statistik
+        // Statistik
         $totalSiswa = $data->count();
         $lulus = $data->where('skor', '>=', 75)->count();
         $remedial = $data->where('skor', '<', 75)->count();
@@ -144,7 +145,7 @@ class BuatUjianController extends Controller
         ])
             ->where('ujian_id', $ujianId)
             ->get()
-            ->sortByDesc('nilai') // 🔥 optional: ranking
+            ->sortByDesc('nilai') //
             ->values();
 
         $filename = "report-" . str_replace(' ', '-', $ujian->judul) . ".csv";

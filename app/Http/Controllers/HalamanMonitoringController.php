@@ -75,4 +75,41 @@ class HalamanMonitoringController extends Controller
             return back()->with('error', 'Gagal menghentikan ujian: ' . $e->getMessage());
         }
     }
+
+    public function getMonitoringData($ujian_id)
+    {
+        $siswas = Siswa::has('user')
+            ->with(['user.percobaanUjians' => function ($query) use ($ujian_id) {
+                $query->where('ujian_id', $ujian_id)->latest();
+            }, 'user.percobaanUjians.jawabans'])
+            ->get();
+
+        $totalSoal = Pertanyaan::where('ujian_id', $ujian_id)->count();
+
+        $data = [];
+
+        foreach ($siswas as $siswa) {
+            $percobaan = $siswa->user?->percobaanUjians?->first();
+
+            $jawaban = $percobaan ? $percobaan->jawabans->count() : 0;
+            $persen = $totalSoal > 0 ? ($jawaban / $totalSoal) * 100 : 0;
+
+            $data[] = [
+                'nis' => $siswa->nis,
+                'nama' => $siswa->nama_siswa,
+                'kelas' => $siswa->kelas->nama_kelas,
+                'jurusan' => $siswa->jurusan->nama_jurusan,
+                'persen' => round($persen),
+                'jawaban' => $jawaban,
+                'status' => $percobaan->status ?? 'offline',
+                'mulai' => $percobaan ? $percobaan->waktu_mulai : null,
+                'percobaan_id' => $percobaan->id ?? null
+            ];
+        }
+
+        return response()->json([
+            'data' => $data
+        ]);
+    }
+
 }

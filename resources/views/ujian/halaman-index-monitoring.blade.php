@@ -1,121 +1,143 @@
 @extends('dashboard.index')
 
 @section('content')
-    <section class="content-header">
-        <div class="container-fluid px-2">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1>Data Ujian</h1>
-                </div>
+
+<section class="content-header">
+    <div class="container-fluid px-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h3 class="fw-bold mb-1">Monitoring Ujian</h3>
+                <small class="text-muted">Pantau seluruh ujian yang tersedia</small>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- Content -->
-    <section class="content">
-        <div class="container-fluid">
-            <div class="card">
+<section class="content">
+<div class="container-fluid">
 
-                <!-- Card Header -->
-                <div class="card-header">
-                    <h3 class="card-title">Daftar Ujian</h3>
-                </div>
+    <div class="card shadow-sm border-0">
 
-                <!-- Card Body -->
-                <div class="card-body">
-                    <table id="table-kelas" class="table table-bordered table-hover align-middle">
-                        <thead class="table-dark text-center">
-                            <tr>
-                                <th>No</th>
-                                <th class="text-start">Nama Ujian</th>
-                                <th>Durasi</th>
-                                <th>Percobaan</th>
-                                <th>Jadwal</th>
-                                <th>Soal</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($ujians as $key => $item)
-                                <tr>
-                                    <td class="text-center">{{ $key + 1 }}</td>
+        {{-- HEADER --}}
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-semibold">Daftar Ujian</h5>
+        </div>
 
-                                    {{-- NAMA --}}
-                                    <td>
-                                        <div class="fw-bold">{{ $item->judul }}</div>
-                                        <small class="text-muted">{{ $item->deskripsi }}</small>
-                                    </td>
+        {{-- BODY --}}
+        <div class="card-body p-0">
+            <div class="table-responsive">
 
-                                    {{-- DURASI --}}
-                                    <td class="text-center">
-                                        <span class="badge bg-info">
-                                            {{ $item->waktu }} Menit
-                                        </span>
-                                    </td>
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-dark text-white text-center">
+                        <tr>
+                            <th width="50">#</th>
+                            <th class="text-start">Ujian</th>
+                            <th>Durasi</th>
+                            <th>Percobaan</th>
+                            <th>Jadwal</th>
+                            <th>Soal</th>
+                            <th width="150">Aksi</th>
+                        </tr>
+                    </thead>
 
-                                    {{-- PERCOBAAN --}}
-                                    <td class="text-center">
-                                        <span class="badge bg-secondary">
-                                            @if (auth()->user()->role == 'siswa')
-                                                {{ $item->jumlah_percobaan }} / {{ $item->max_percobaan }}
-                                            @else
-                                                {{ $item->max_percobaan }} x
-                                            @endif
-                                        </span>
-                                    </td>
+                    <tbody>
+                        @forelse ($ujians as $key => $item)
+                        <tr>
 
-                                    {{-- JADWAL --}}
-                                    <td class="text-center">
-                                        <small>
-                                            {{ $item->waktu_mulai }} <br> s/d <br> {{ $item->waktu_selesai }}
-                                        </small>
-                                    </td>
+                            {{-- NO --}}
+                            <td class="text-center fw-bold">
+                                {{ $key + 1 }}
+                            </td>
 
-                                    {{-- SOAL --}}
-                                    <td class="text-center">
-                                        @if ($item->tipe == 'word')
-                                            <div>
-                                                <span class="badge bg-primary">
-                                                    Word: {{ $item->pertanyaans->count() ?? 0 }}/30
-                                                </span>
-                                            </div>
-                                        @elseif($item->tipe == 'excel')
-                                            <div class="mt-1">
-                                                <span class="badge bg-success">
-                                                    Excel: {{ $item->pertanyaans->count() ?? 0 }}/30
-                                                </span>
-                                            </div>
-                                        @endif
-                                    </td>
+                            {{-- NAMA --}}
+                            <td>
+                                <div class="fw-semibold text-dark">
+                                    {{ $item->judul }}
+                                </div>
+                                <small class="text-muted">
+                                    {{ $item->deskripsi }}
+                                </small>
+                            </td>
 
-                                    {{-- AKSI --}}
-                                    <td class="text-center">
+                            {{-- DURASI --}}
+                            <td class="text-center">
+                                <span class="badge bg-info px-3 py-2">
+                                    ⏱ {{ $item->waktu }} Menit
+                                </span>
+                            </td>
 
-                                        <div class="d-flex justify-content-center gap-2">
-                                            @if ($item->tipe == 'word')
-                                                <a href="{{ route('ujian.monitoring', $item->id) }}"
-                                                    id="btnWord" class="btn btn-primary px-4 m-2">
-                                                    Word
-                                                </a>
-                                            @elseif($item->tipe == 'excel')
-                                                <a href="{{ route('ujian.monitoring', $item->id) }}"
-                                                    id="btnExcel" class="btn btn-success px-4 m-2">
-                                                    Excel
-                                                </a>
-                                            @else
-                                                <span class="badge badge-secondary">No Action</span>
-                                            @endif
-                                        </div>
+                            {{-- PERCOBAAN --}}
+                            <td class="text-center">
+                                <span class="badge bg-secondary px-3 py-2">
+                                    {{ $item->max_percobaan }}x
+                                </span>
+                            </td>
 
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                            {{-- JADWAL --}}
+                            <td class="text-center">
+                                <small class="text-muted">
+                                    {{ \Carbon\Carbon::parse($item->waktu_mulai)->format('d M H:i') }}
+                                    <br>
+                                    s/d
+                                    <br>
+                                    {{ \Carbon\Carbon::parse($item->waktu_selesai)->format('d M H:i') }}
+                                </small>
+                            </td>
+
+                            {{-- SOAL --}}
+                            <td class="text-center">
+                                @if ($item->tipe == 'word')
+                                    <span class="badge bg-primary px-3 py-2">
+                                        📄 Word <br>
+                                        {{ $item->pertanyaans->count() ?? 0 }}/30
+                                    </span>
+                                @elseif($item->tipe == 'excel')
+                                    <span class="badge bg-success px-3 py-2">
+                                        📊 Excel <br>
+                                        {{ $item->pertanyaans->count() ?? 0 }}/30
+                                    </span>
+                                @else
+                                    <span class="badge bg-light text-dark">
+                                        -
+                                    </span>
+                                @endif
+                            </td>
+
+                            {{-- AKSI --}}
+                            <td class="text-center">
+                                @if ($item->tipe == 'word')
+                                    <a href="{{ route('ujian.monitoring', $item->id) }}"
+                                       class="btn btn-primary btn-sm px-3 fw-semibold">
+                                        👁 Monitoring
+                                    </a>
+                                @elseif($item->tipe == 'excel')
+                                    <a href="{{ route('ujian.monitoring', $item->id) }}"
+                                       class="btn btn-success btn-sm px-3 fw-semibold">
+                                        👁 Monitoring
+                                    </a>
+                                @else
+                                    <span class="badge bg-secondary">No Action</span>
+                                @endif
+                            </td>
+
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                Belum ada data ujian
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+
+                </table>
 
             </div>
         </div>
 
-    </section>
+    </div>
+
+</div>
+</section>
+
 @endsection

@@ -1,97 +1,149 @@
 @extends('dashboard.index')
 
 @section('content')
-    @if (session('success'))
-        <script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil',
-                text: '{{ session('success') }}',
-                timer: 2000,
-                showConfirmButton: false
-            });
-        </script>
-    @endif
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-12">
 
-                <div class=" card form-card border-0 p-4 p-md-5">
-                    <h3 class="mb-4 text-primary  fw-bold">Form Create Ujian</h3>
+@if (session('success'))
+<script>
+Swal.fire({
+    icon: 'success',
+    title: 'Berhasil',
+    text: '{{ session('success') }}',
+    timer: 2000,
+    showConfirmButton: false
+});
+</script>
+@endif
 
+<div class="container-fluid py-4">
 
-                    <form method="post" action="{{ route('ujian.store') }}" class="needs-validation" novalidate>
-                        @csrf
-                        <div class="row g-3">
+    <div class="card shadow-sm">
 
-                            <div class="col-md-6">
-                                <label class=" form-label fw-semibold my-2">Judul Ujian</label>
-                                <input type="text" class="form-control" name="judul"
-                                    placeholder="Masukkan Judul Ujian">
-                            </div>
+        {{-- HEADER --}}
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0 fw-bold">
+                <i class="fas fa-file-alt mr-2"></i> Form Create Ujian
+            </h4>
+        </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold my-2">Deskripsi</label>
-                                <input type="text" class="form-control" name="deskripsi"
-                                    placeholder="Masukkan Deskripsi">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold my-2">Waktu (menit)</label>
-                                <input type="number" class="form-control" name="waktu" placeholder="Masukkan Waktu">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold my-2">Max Percobaan</label>
-                                <input type="number" class="form-control" name="max_percobaan"
-                                    placeholder="Masukkan Max Percobaan">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold my-2">Waktu Mulai</label>
-                                <input type="datetime-local" class="form-control" name="waktu_mulai">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold my-2">Waktu Selesai</label>
-                                <input type="datetime-local" class="form-control" name="waktu_selesai">
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label>Tipe</label>
-                                <select name="tipe" id="tipe" class="form-control w-full">
-                                    <option selected disabled value="">-- Pilih Tipe --</option>
-                                    <option value="-">-</option>
-                                    <option value="word">Word</option>
-                                    <option value="excel">Excel</option>
-                                </select>
-                            </div>
-                        </div>
+        {{-- BODY --}}
+        <div class="card-body">
 
+            <form method="POST" action="{{ route('ujian.store') }}">
+                @csrf
 
-                        <div class="mt-4 flex d-flex justify-content-between  pt-3 border-top">
-                            <a href="{{ route('ujian.index') }}" class="btn btn-secondary  rounded-lg px-4 fw-bold">
-                                Kembali
-                            </a>
-                            <button type="submit" class="btn btn-primary btn-submit">
-                                Submit
-                            </button>
-                        </div>
-                    </form>
+                <div class="row">
+
+                    {{-- JUDUL --}}
+                    <div class="col-md-6 mb-3">
+                        <label class="font-weight-bold">Judul Ujian</label>
+                        <input type="text" name="judul"
+                            class="form-control @error('judul') is-invalid @enderror"
+                            placeholder="Masukkan Judul Ujian"
+                            value="{{ old('judul') }}">
+
+                        @error('judul')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    {{-- DESKRIPSI --}}
+                    <div class="col-md-6 mb-3">
+                        <label class="font-weight-bold">Deskripsi</label>
+                        <input type="text" name="deskripsi"
+                            class="form-control @error('deskripsi') is-invalid @enderror"
+                            placeholder="Masukkan Deskripsi"
+                            value="{{ old('deskripsi') }}">
+
+                        @error('deskripsi')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    {{-- WAKTU --}}
+                    <div class="col-md-6 mb-3">
+                        <label class="font-weight-bold">Durasi (Menit)</label>
+                        <input type="number" name="waktu"
+                            class="form-control @error('waktu') is-invalid @enderror"
+                            placeholder="Contoh: 60"
+                            value="{{ old('waktu') }}">
+
+                        @error('waktu')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    {{-- MAX PERCOBAAN --}}
+                    <div class="col-md-6 mb-3">
+                        <label class="font-weight-bold">Max Percobaan</label>
+                        <input type="number" name="max_percobaan"
+                            class="form-control @error('max_percobaan') is-invalid @enderror"
+                            placeholder="Contoh: 3"
+                            value="{{ old('max_percobaan') }}">
+
+                        @error('max_percobaan')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    {{-- WAKTU MULAI --}}
+                    <div class="col-md-6 mb-3">
+                        <label class="font-weight-bold">Waktu Mulai</label>
+                        <input type="datetime-local" name="waktu_mulai"
+                            class="form-control @error('waktu_mulai') is-invalid @enderror"
+                            value="{{ old('waktu_mulai') }}">
+
+                        @error('waktu_mulai')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    {{-- WAKTU SELESAI --}}
+                    <div class="col-md-6 mb-3">
+                        <label class="font-weight-bold">Waktu Selesai</label>
+                        <input type="datetime-local" name="waktu_selesai"
+                            class="form-control @error('waktu_selesai') is-invalid @enderror"
+                            value="{{ old('waktu_selesai') }}">
+
+                        @error('waktu_selesai')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    {{-- TIPE --}}
+                    <div class="col-md-6 mb-3">
+                        <label class="font-weight-bold">Tipe Ujian</label>
+                        <select name="tipe"
+                            class="form-control @error('tipe') is-invalid @enderror">
+
+                            <option value="">-- Pilih Tipe --</option>
+                            <option value="word" {{ old('tipe') == 'word' ? 'selected' : '' }}>Word</option>
+                            <option value="excel" {{ old('tipe') == 'excel' ? 'selected' : '' }}>Excel</option>
+
+                        </select>
+
+                        @error('tipe')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
 
                 </div>
-            </div>
+
+                {{-- FOOTER --}}
+                <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                    <a href="{{ route('ujian.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Kembali
+                    </a>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Simpan Ujian
+                    </button>
+                </div>
+
+            </form>
+
         </div>
-        <script>
-            function confirmDelete(id) {
-                Swal.fire({
-                    title: 'Yakin hapus?',
-                    text: "Data tidak bisa dikembalikan!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Ya, hapus!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        document.getElementById('delete-form-' + id).submit();
-                    }
-                });
-            }
-        </script>
-    @endsection
+    </div>
+
+</div>
+
+@endsection

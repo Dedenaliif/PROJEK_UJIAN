@@ -106,5 +106,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/monitoring', [HalamanMonitoringController::class, 'index'])->name('monitoring.index');
         Route::get('/ujianmonitoring/{id}', [HalamanMonitoringController::class, 'monitor'])->name('ujian.monitoring');
-    });
+
+        Route::get('/monitoring-data/{id}', [HalamanMonitoringController::class, 'getMonitoringData'])->name('monitoring.data');
+        });
 });
