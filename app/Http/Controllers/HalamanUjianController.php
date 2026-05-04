@@ -16,7 +16,6 @@ class HalamanUjianController extends Controller
     private function forceSelesai($percobaan)
     {
         $jawaban = Jawaban::where('percobaan_ujian_id', $percobaan->id)->get();
-
         $totalSkor = $jawaban->sum('skor');
 
         $percobaan->update([
@@ -33,10 +32,8 @@ class HalamanUjianController extends Controller
     public function show(Request $request, $ujianId)
     {
         $ujian = Ujian::findOrFail($ujianId);
-
         $current = (int) $request->get('no', 1);
 
-        // 🔥 ambil percobaan aktif
         $percobaan = PercobaanUjian::where('user_id', Auth::id())
             ->where('ujian_id', $ujianId)
             ->where('status', 'sedang dikerjakan')
@@ -48,7 +45,7 @@ class HalamanUjianController extends Controller
                 ->with('error', 'Silakan mulai ujian terlebih dahulu');
         }
 
-        // 🔥 ambil urutan soal dari session
+        // 🔥 AMBIL SOAL DARI SESSION
         $soalIds = session('soal_ujian_'.$percobaan->id);
 
         if (!$soalIds) {
@@ -57,20 +54,17 @@ class HalamanUjianController extends Controller
                 ->toArray();
         }
 
-        // 🔥 ambil semua soal sesuai urutan
         $soals = Pertanyaan::whereIn('id', $soalIds)
             ->orderByRaw("FIELD(id," . implode(',', $soalIds) . ")")
             ->get();
 
         $total = $soals->count();
-
         $current = max(1, min($current, $total));
-
         $soal = $soals[$current - 1] ?? null;
 
-        // 🔥 timer
+        // 🔥 FIX DI SINI
         $waktuMulai = Carbon::parse($percobaan->waktu_mulai);
-        $waktuSelesai = $waktuMulai->copy()->addMinutes($ujian->waktu);
+        $waktuSelesai = $waktuMulai->copy()->addMinutes((int) $ujian->waktu);
 
         if (now()->greaterThan($waktuSelesai)) {
             return $this->forceSelesai($percobaan);
@@ -103,7 +97,7 @@ class HalamanUjianController extends Controller
         if ($existing) {
 
             $waktuMulai = Carbon::parse($existing->waktu_mulai);
-            $waktuSelesai = $waktuMulai->copy()->addMinutes($ujian->waktu);
+            $waktuSelesai = $waktuMulai->copy()->addMinutes((int) $ujian->waktu);
 
             if (now()->greaterThan($waktuSelesai)) {
                 return $this->forceSelesai($existing);
@@ -129,7 +123,7 @@ class HalamanUjianController extends Controller
             'status' => 'sedang dikerjakan'
         ]);
 
-        // ACAK SOAL
+        // 🔥 ACAK SOAL
         $soalIds = Pertanyaan::where('ujian_id', $ujianId)
             ->pluck('id')
             ->shuffle()
@@ -160,8 +154,7 @@ class HalamanUjianController extends Controller
         $benar = $jawaban === $soal->jawaban_benar;
 
         $totalSoal = Pertanyaan::where('ujian_id', $ujianId)->count();
-        $skorPerSoal = 100 / $totalSoal;
-
+        $skorPerSoal = 100 / max($totalSoal, 1);
 
         $data = Jawaban::where('percobaan_ujian_id', $percobaan->id)
             ->where('pertanyaan_id', $soal->id)
@@ -184,15 +177,11 @@ class HalamanUjianController extends Controller
         }
 
         return response()->json(['status' => 'ok']);
-
     }
 
     public function selesai($ujianId)
     {
-        $userId = Auth::id();
-
-
-        $percobaan = PercobaanUjian::where('user_id', $userId)
+        $percobaan = PercobaanUjian::where('user_id', Auth::id())
             ->where('ujian_id', $ujianId)
             ->where('status', 'sedang dikerjakan')
             ->latest()
@@ -211,7 +200,6 @@ class HalamanUjianController extends Controller
 
         $totalSkor = $jawaban->sum('skor');
 
-
         $percobaan->update([
             'status' => 'selesai',
             'waktu_selesai' => now(),
@@ -222,12 +210,9 @@ class HalamanUjianController extends Controller
         return redirect()->route('ujian.hasil', $ujianId);
     }
 
-   public function hasil($ujianId)
+    public function hasil($ujianId)
     {
-        $userId = Auth::id();
-
-        // 🔥 AMBIL YANG SUDAH SELESAI (INI KUNCI FIX)
-        $percobaan = PercobaanUjian::where('user_id', $userId)
+        $percobaan = PercobaanUjian::where('user_id', Auth::id())
             ->where('ujian_id', $ujianId)
             ->where('status', 'selesai')
             ->latest()
@@ -238,23 +223,18 @@ class HalamanUjianController extends Controller
                 ->with('error', 'Belum ada hasil ujian');
         }
 
-        $siswa = Siswa::where('user_id', $userId)->first();
-
+        $siswa = Siswa::where('user_id', Auth::id())->first();
         $totalSoal = Pertanyaan::where('ujian_id', $ujianId)->count();
-
         $jumlahJawaban = Jawaban::where('percobaan_ujian_id', $percobaan->id)->count();
 
-        // 🔥 NILAI DIAMBIL DARI PERCOBAAN YANG BENAR
         $nilai = $percobaan->skor ?? 0;
-
         $lulus = $nilai >= 75;
 
-        $jumlahPercobaan = PercobaanUjian::where('user_id', $userId)
+        $jumlahPercobaan = PercobaanUjian::where('user_id', Auth::id())
             ->where('ujian_id', $ujianId)
             ->count();
 
         $ujian = Ujian::findOrFail($ujianId);
-
         $sisaPercobaan = $ujian->max_percobaan - $jumlahPercobaan;
 
         return view('ujian.hasil', compact(
