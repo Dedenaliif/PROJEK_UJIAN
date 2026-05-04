@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\PercobaanUjian;
 use Illuminate\Support\Carbon;
 use App\Models\Jawaban;
+use App\Models\Kelas;
 
 class BuatUjianController extends Controller
 {
@@ -100,13 +101,13 @@ class BuatUjianController extends Controller
 
     public function report($ujianId)
     {
-        $ujian = \App\Models\Ujian::findOrFail($ujianId);
+        $ujian = Ujian::findOrFail($ujianId);
 
-        $data = \App\Models\PercobaanUjian::with(['user.siswa'])
-            ->where('ujian_id', $ujianId)
-            ->get();
+        // Ambil data untuk dropdown filter
+        $listKelas = Kelas::all();
+        $listJurusan = \App\Models\Jurusan::all(); // Tambahkan ini
 
-        $query = \App\Models\PercobaanUjian::with([
+        $query = PercobaanUjian::with([
             'user.siswa.kelas',
             'user.siswa.jurusan'
         ])
@@ -119,12 +120,27 @@ class BuatUjianController extends Controller
             $query->where('skor', '<', 75);
         }
 
+        // FILTER KELAS
+        if (request('kelas_id')) {
+            $query->whereHas('user.siswa', function ($q) {
+                $q->where('kelas_id', request('kelas_id'));
+            });
+        }
+
+        // FILTER JURUSAN (BARU)
+        if (request('jurusan_id')) {
+            $query->whereHas('user.siswa', function ($q) {
+                $q->where('jurusan_id', request('jurusan_id'));
+            });
+        }
+
         $data = $query->get();
-        // Statistik
+
+        // Statistik otomatis mengikuti data yang terfilter
         $totalSiswa = $data->count();
         $lulus = $data->where('skor', '>=', 75)->count();
         $remedial = $data->where('skor', '<', 75)->count();
-        $rata = $data->avg('skor');
+        $rata = $data->avg('skor') ?? 0;
 
         return view('ujian.halaman-report', compact(
             'ujian',
@@ -132,23 +148,46 @@ class BuatUjianController extends Controller
             'totalSiswa',
             'lulus',
             'remedial',
-            'rata'
+            'rata',
+            'listKelas',
+            'listJurusan'
         ));
     }
     public function exportCsv($ujianId)
     {
         $ujian = \App\Models\Ujian::findOrFail($ujianId);
 
-        $data = \App\Models\PercobaanUjian::with([
+        // Membangun query dengan filter yang sama dengan halaman report
+        $query = \App\Models\PercobaanUjian::with([
             'user.siswa.kelas',
             'user.siswa.jurusan'
         ])
-            ->where('ujian_id', $ujianId)
-            ->get()
-            ->sortByDesc('nilai') //
-            ->values();
+            ->where('ujian_id', $ujianId);
 
-        $filename = "report-" . str_replace(' ', '-', $ujian->judul) . ".csv";
+        // Logic Filter yang sama dengan method report
+        if (request('status') == 'lulus') {
+            $query->where('skor', '>=', 75);
+        } elseif (request('status') == 'remedial') {
+            $query->where('skor', '<', 75);
+        }
+
+        if (request('kelas_id')) {
+            $query->whereHas('user.siswa', function ($q) {
+                $q->where('kelas_id', request('kelas_id'));
+            });
+        }
+
+        if (request('jurusan_id')) {
+            $query->whereHas('user.siswa', function ($q) {
+                $q->where('jurusan_id', request('jurusan_id'));
+            });
+        }
+
+        // Ambil data dan urutkan berdasarkan nilai tertinggi
+        $data = $query->orderByDesc('skor')->get();
+
+        // Penamaan file yang dinamis
+        $filename = "Laporan-" . str_replace(' ', '-', $ujian->judul) . "-" . date('Ymd-Hi') . ".csv";
 
         $headers = [
             "Content-Type" => "text/csv",
@@ -158,14 +197,14 @@ class BuatUjianController extends Controller
         $callback = function () use ($data) {
             $file = fopen('php://output', 'w');
 
-            // 🔥 FIX UTF-8 (biar Excel normal)
+            // Menambahkan BOM untuk kompatibilitas Excel (biar tidak berantakan)
             fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // HEADER
+            // Header CSV
             fputcsv($file, [
                 'No',
                 'NIS',
-                'Nama',
+                'Nama Siswa',
                 'Kelas',
                 'Jurusan',
                 'Nilai',
