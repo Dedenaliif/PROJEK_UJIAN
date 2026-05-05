@@ -39,12 +39,13 @@ Route::middleware('auth')->group(function () {
     */
     Route::middleware('role:admin')->prefix('admin')->group(function () {
 
-        Route::resource('user', UserController::class);
+        Route::resource('user', UserController::class)->except(['show']);
         Route::resource('siswa', SiswaController::class);
         Route::resource('kelas', KelasController::class);
         Route::resource('jurusan', JurusanController::class);
 
         Route::post('/import-siswa', [UserController::class, 'importCsv'])->name('siswa.import');
+        Route::get('/user/template-csv', [UserController::class, 'downloadTemplate'])->name('siswa.template');
     });
 
     /*

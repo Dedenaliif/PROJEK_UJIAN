@@ -107,4 +107,27 @@ class UserController extends Controller
 
         return back()->with('success', "Berhasil men-generate $successCount data user dengan format nama depan + jurusan!");
     }
+
+    public function downloadTemplate()
+    {
+        $filename = "template_siswa.csv";
+
+        $headers = [
+            "Content-Type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+        ];
+
+        $callback = function () {
+
+            $file = fopen('php://output', 'w');
+
+            // 🔥 HEADER
+            fputcsv($file, ['nama', 'jurusan'], ';');
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
 }

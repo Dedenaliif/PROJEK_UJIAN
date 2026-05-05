@@ -51,7 +51,7 @@
                         <tbody>
                             @forelse ($jurusan as $j)
                                 <tr>
-                                    <td>{{ $loop->iteration }}</td>
+                                    <td class="text-center">{{ $loop->iteration }}</td>
                                     <td class="text-center">{{ $j->nama_jurusan }}</td>
                                     <td class="text-center">
                                         <button class="btn btn-warning btn-sm btn-edit_jurusan" data-id="{{ $j->id }}"
