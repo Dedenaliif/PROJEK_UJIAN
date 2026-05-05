@@ -1,17 +1,17 @@
 @extends('dashboard.index')
 
 @section('content')
-@if (session('success'))
-<script>
-    Swal.fire({
-        icon: 'success',
-        title: 'Berhasil',
-        text: '{{ session('success') }}',
-        timer: 2000,
-        showConfirmButton: false
-    });
-</script>
-@endif
+    @if (session('success'))
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: '{{ session('success') }}',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        </script>
+    @endif
     <section class="content-header">
         <div class="container-fluid px-2">
             <div class="row mb-2">
@@ -24,6 +24,16 @@
                         <i class="fas fa-plus"></i> Tambah User
                     </button>
                 </div>
+                <form action="{{ route('siswa.import') }}" method="POST" enctype="multipart/form-data"
+                    class="p-4 border rounded">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Upload File CSV Siswa</label>
+                        <input type="file" name="file" id="file" class="form-control" accept=".csv" required>
+                        <small class="text-muted">Format: Nama, Jurusan (Simpan Excel ke CSV)</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Generate Sekarang</button>
+                </form>
             </div>
         </div>
     </section>
@@ -57,13 +67,14 @@
                                     <td class="text-center">{{ $u->role }}</td>
                                     <td class="text-center">
                                         <button class="btn btn-warning btn-sm btn-edit_user" data-id="{{ $u->id }}"
-                                            data-username="{{ $u->username }}" data-role="{{ $u->role }}" data-toggle="modal"
-                                            data-target="#modal-edit">Edit</button>
-                                       <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ $u->id }})">
+                                            data-username="{{ $u->username }}" data-role="{{ $u->role }}"
+                                            data-toggle="modal" data-target="#modal-edit">Edit</button>
+                                        <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ $u->id }})">
                                             Hapus
                                         </button>
 
-                                        <form id="delete-form-{{ $u->id }}" action="{{ route('user.destroy', $u->id) }}" method="POST">
+                                        <form id="delete-form-{{ $u->id }}"
+                                            action="{{ route('user.destroy', $u->id) }}" method="POST">
                                             @csrf
                                             @method('DELETE')
                                         </form>
@@ -86,20 +97,20 @@
     @include('user.edit')
     @include('user.create')
     <script>
-    function confirmDelete(id) {
-        Swal.fire({
-            title: 'Yakin hapus?',
-            text: "Data tidak bisa dikembalikan!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, hapus!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('delete-form-' + id).submit();
-            }
-        });
-    }
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Yakin hapus?',
+                text: "Data tidak bisa dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, hapus!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + id).submit();
+                }
+            });
+        }
     </script>
 @endsection

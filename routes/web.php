@@ -43,6 +43,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('siswa', SiswaController::class);
         Route::resource('kelas', KelasController::class);
         Route::resource('jurusan', JurusanController::class);
+
+        Route::post('/import-siswa', [UserController::class, 'importCsv'])->name('siswa.import');
     });
 
     /*
@@ -58,7 +60,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/ujian', [BuatUjianController::class, 'store'])->name('ujian.store');
         Route::get('/ujian/report/{ujian}', [BuatUjianController::class, 'report'])
             ->name('ujian.report');
-            Route::get('/ujian/export/{ujian}', [BuatUjianController::class,'exportCSV'])->name('ujian.export');
+        Route::get('/ujian/export/{ujian}', [BuatUjianController::class, 'exportCSV'])->name('ujian.export');
 
         Route::prefix('soal')->group(function () {
             Route::get('/{ujian}', [BuatSoalController::class, 'create'])->name('soal.create');
@@ -108,5 +110,5 @@ Route::middleware('auth')->group(function () {
         Route::get('/ujianmonitoring/{id}', [HalamanMonitoringController::class, 'monitor'])->name('ujian.monitoring');
 
         Route::get('/monitoring-data/{id}', [HalamanMonitoringController::class, 'getMonitoringData'])->name('monitoring.data');
-        });
+    });
 });
