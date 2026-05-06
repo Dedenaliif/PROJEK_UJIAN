@@ -28,7 +28,7 @@
         /* Container Utama */
         .login-card-container {
             display: flex;
-            width: 900px;
+            width: 600px;
             /* Lebar total */
             max-width: 100%;
             background: rgba(255, 255, 255, 0.95);
@@ -41,10 +41,12 @@
 
         /* Sisi Kiri: Gambar */
         .login-image-side {
-            flex: 1;
+            flex: none;
             background-image: url('{{ asset('img/logo.png') }}');
             /* GANTI URL GAMBAR DISINI */
             background-size: contain;
+            width: 100px;
+            height: 100px;
             background-position: center;
             background-repeat: no-repeat;
             display: none;
@@ -77,7 +79,7 @@
         .login-box-msg {
             color: #6b7280;
             padding: 0;
-            margin-bottom: 30px;
+            /* margin-bottom: 30px; */
             text-align: left;
         }
 
@@ -107,6 +109,14 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
         }
+        .flex {
+            display: flex;
+            align-items: center;
+            background-color: #f9fafb;
+            /* border: #6b7280 1px solid; */
+            gap: 20px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 
@@ -114,16 +124,19 @@
 
     <div class="login-card-container">
         <!-- Bagian Gambar -->
-        <div class="login-image-side border ">
-            <!-- Overlay opsional jika ingin gambar agak gelap -->
-            {{-- <div style="width: 100%; height: 100%; background: rgba(0,0,0,0.1);"></div> --}}
-        </div>
+
 
         <!-- Bagian Form -->
         <div class="login-form-side">
-            <div class="text-left mb-4">
-                <div class="logo-text">CBT System</div>
-                <p class="login-box-msg">Silakan login untuk memulai ujian</p>
+            <div class="flex">
+                <div class="login-image-side ">
+                    <!-- Overlay opsional jika ingin gambar agak gelap -->
+                    {{-- <div style="width: 100%; height: 100%; background: rgba(0,0,0,0.1);"></div> --}}
+                </div>
+                <div class="text-left">
+                    <div class="logo-text">CBT System</div>
+                    <p class="login-box-msg">Silakan login untuk memulai ujian</p>
+                </div>
             </div>
 
             <form action="{{ route('login.authenticate') }}" method="post">

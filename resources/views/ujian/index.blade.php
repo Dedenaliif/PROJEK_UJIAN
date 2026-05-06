@@ -61,7 +61,7 @@
                             </td>
 
                             {{-- NAMA --}}
-                            <td>
+                            <td class="col-2">
                                 <div class="fw-bold text-dark">
                                     {{ $item->judul }}
                                 </div>

@@ -38,11 +38,11 @@ Swal.fire({
             <div class="card-body">
                 <form action="{{ route('siswa.import') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <div class="row align-items-end">
+                    <div class="row align-items-center border p-3 border-amber-200">
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Upload CSV Siswa</label>
-                            <input type="file" name="file" class="form-control" accept=".csv" required>
+                            <input type="file" name="file" class="form-control mt-0" accept=".csv" required>
                             <small class="text-muted">Format: Nama, Jurusan</small>
                         </div>
 
