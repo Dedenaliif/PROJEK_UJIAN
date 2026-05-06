@@ -13,7 +13,7 @@ class DashboardController extends Controller
         $totalPenguji = User::where('role', 'penguji')->count();
         $totalPengawas = User::where('role', 'pengawas')->count();
 
-        return view('dashboard.home', compact(
+        return view('dashboard.index', compact(
             'totalSiswa',
             'totalPenguji',
             'totalPengawas'
@@ -22,7 +22,7 @@ class DashboardController extends Controller
 
     public function ujian()
     {
-        return view('dashboard.ujianonline');
+        // return view('dashboard.ujianonline');
     }
 
     /**
