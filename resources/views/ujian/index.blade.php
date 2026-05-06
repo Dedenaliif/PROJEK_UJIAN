@@ -2,41 +2,39 @@
 
 @section('content')
 
-<section class="content-header mb-3">
-    <div class="container-fluid px-3">
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    {{-- HEADER --}}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
 
             <div>
-                <h3 class="fw-bold mb-1">Data Ujian</h3>
+                <h4 class="fw-bold mb-1">Data Ujian</h4>
                 <small class="text-muted">Kelola dan pantau ujian</small>
             </div>
 
             @if (auth()->user()->role == 'penguji')
-                <a href="{{ route('ujian.create') }}"
-                    class="btn btn-primary shadow-sm px-4">
-                    + Buat Ujian
+                <a href="{{ route('ujian.create') }}" class="btn btn-primary px-4">
+                    <i class="bx bx-plus"></i> Buat Ujian
                 </a>
             @endif
 
         </div>
     </div>
-</section>
 
-<section class="content">
-<div class="container-fluid">
 
-    <div class="card border-0 shadow-sm">
+    {{-- TABLE CARD --}}
+    <div class="card border-0 shadow-sm rounded-3">
 
-        {{-- HEADER --}}
-        <div class="card-header bg-white border-0">
+        <div class="card-header bg-white py-3 px-4 border-bottom">
             <h6 class="fw-bold mb-0">Daftar Ujian</h6>
         </div>
 
-        {{-- BODY --}}
-        <div class="card-body p-0">
+        <div class="card-body p-3">
 
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+
+                <table class="table align-middle">
 
                     <thead class="table-light text-center">
                         <tr>
@@ -53,16 +51,14 @@
                     <tbody>
 
                         @foreach ($ujians as $key => $item)
-                        <tr>
+                        <tr class="table-row-hover">
 
-                            {{-- NO --}}
                             <td class="text-center fw-semibold">
                                 {{ $key + 1 }}
                             </td>
 
-                            {{-- NAMA --}}
-                            <td class="col-2">
-                                <div class="fw-bold text-dark">
+                            <td>
+                                <div class="fw-semibold mb-1">
                                     {{ $item->judul }}
                                 </div>
                                 <small class="text-muted">
@@ -70,16 +66,14 @@
                                 </small>
                             </td>
 
-                            {{-- DURASI --}}
                             <td class="text-center">
-                                <span class="badge bg-info px-3 py-2">
+                                <span class="badge bg-label-info">
                                     ⏱ {{ $item->waktu }} Menit
                                 </span>
                             </td>
 
-                            {{-- PERCOBAAN --}}
                             <td class="text-center">
-                                <span class="badge bg-secondary px-3 py-2">
+                                <span class="badge bg-label-secondary">
                                     @if (auth()->user()->role == 'siswa')
                                         {{ $item->jumlah_percobaan }} / {{ $item->max_percobaan }}
                                     @else
@@ -88,58 +82,52 @@
                                 </span>
                             </td>
 
-                            {{-- JADWAL --}}
-                            <td class="text-center">
-                                <small class="text-muted">
-                                    {{ $item->waktu_mulai }} <br>
-                                    <span class="text-dark fw-semibold">s/d</span> <br>
-                                    {{ $item->waktu_selesai }}
-                                </small>
+                            <td class="text-center small">
+                                <div>{{ $item->waktu_mulai }}</div>
+                                <div class="text-muted">s/d</div>
+                                <div>{{ $item->waktu_selesai }}</div>
                             </td>
 
-                            {{-- SOAL --}}
                             <td class="text-center">
                                 @if ($item->tipe == 'word')
-                                    <span class="badge bg-primary px-3 py-2">
+                                    <span class="badge bg-label-primary">
                                         📄 Word ({{ $item->pertanyaans->count() ?? 0 }})
                                     </span>
                                 @elseif($item->tipe == 'excel')
-                                    <span class="badge bg-success px-3 py-2">
+                                    <span class="badge bg-label-success">
                                         📊 Excel ({{ $item->pertanyaans->count() ?? 0 }})
                                     </span>
                                 @else
-                                    <span class="badge bg-dark">-</span>
+                                    <span class="badge bg-label-dark">-</span>
                                 @endif
                             </td>
 
-                            {{-- AKSI --}}
                             <td class="text-center">
-
                                 <div class="d-flex flex-wrap justify-content-center gap-2">
 
-                                    {{-- ===== PENGUJI ===== --}}
+                                    {{-- PENGUJI --}}
                                     @if (auth()->user()->role == 'penguji')
 
                                         <a href="{{ route('ujian.report', $item->id) }}"
-                                            class="btn btn-outline-info btn-sm px-3">
+                                            class="btn btn-sm btn-outline-info">
                                             Report
                                         </a>
 
                                         @if ($item->tipe == 'word')
                                             <a href="{{ route('soal.create', ['ujian' => $item->id, 'tipe' => 'word']) }}"
-                                                class="btn btn-primary btn-sm px-3">
+                                                class="btn btn-sm btn-primary">
                                                 Word
                                             </a>
                                         @elseif($item->tipe == 'excel')
                                             <a href="{{ route('soal.create', ['ujian' => $item->id, 'tipe' => 'excel']) }}"
-                                                class="btn btn-success btn-sm px-3">
+                                                class="btn btn-sm btn-success">
                                                 Excel
                                             </a>
                                         @endif
 
                                     @endif
 
-                                    {{-- ===== SISWA ===== --}}
+                                    {{-- SISWA --}}
                                     @if (auth()->user()->role == 'siswa')
 
                                         @if ($item->nilai_terakhir >= 75)
@@ -150,7 +138,7 @@
                                         @elseif ($item->nilai_terakhir !== null)
                                             <form action="{{ route('ujianstart.start', $item->id) }}" method="POST">
                                                 @csrf
-                                                <button class="btn btn-warning btn-sm px-3">
+                                                <button class="btn btn-warning btn-sm">
                                                     Coba Lagi
                                                 </button>
                                             </form>
@@ -159,14 +147,14 @@
                                             <form action="{{ route('ujianstart.start', $item->id) }}" method="POST">
                                                 @csrf
                                                 <button
-                                                    class="btn btn-primary btn-sm px-3"
+                                                    class="btn btn-primary btn-sm"
                                                     {{ $item->jumlah_percobaan >= $item->max_percobaan ? 'disabled' : '' }}>
                                                     Mulai
                                                 </button>
                                             </form>
 
                                             <a href="{{ route('ujian.history', $item->id) }}"
-                                                class="btn btn-outline-secondary btn-sm px-3">
+                                                class="btn btn-outline-secondary btn-sm">
                                                 History
                                             </a>
                                         @endif
@@ -174,7 +162,6 @@
                                     @endif
 
                                 </div>
-
                             </td>
 
                         </tr>
@@ -183,6 +170,7 @@
                     </tbody>
 
                 </table>
+
             </div>
 
         </div>
@@ -190,20 +178,18 @@
     </div>
 
 </div>
-</section>
+
+{{-- AUTO REDIRECT --}}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 @if(auth()->user()->role == 'siswa')
 <script>
 setInterval(function() {
-
     $.get("{{ route('ujian.cekStatus') }}", function(res) {
-
         if (res.redirect) {
             window.location.href = res.redirect;
         }
-
     });
-
 }, 3000);
 </script>
 @endif

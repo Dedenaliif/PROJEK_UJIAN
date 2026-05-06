@@ -1,275 +1,137 @@
-<!-- BRAND -->
-<a href="#" class="brand-link text-center py-3">
-    <span class="brand-text fw-bold text-white fs-5">
-        🎓 CBT System
-    </span>
-</a>
+<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
 
-<div class="sidebar">
-
-    <!-- USER PANEL -->
-    <div class="user-panel d-flex align-items-center px-3 py-3 mb-3">
-        @php
-            $user = auth()->user();
-            $nama = $user->role == 'siswa'
-                ? ($user->siswa->nama_siswa ?? $user->username)
-                : $user->username;
-        @endphp
-
-        <div class="image">
-            <img src="https://ui-avatars.com/api/?name={{ $nama }}"
-                class="img-circle elevation-2">
-        </div>
-
-        <div class="info ms-2">
-            <div class="fw-semibold text-white">
-                {{ $nama }}
-            </div>
-            <small class="text-light text-capitalize">
-                {{ $user->role }}
-            </small>
-        </div>
+    {{-- BRAND --}}
+    <div class="app-brand demo text-center">
+        <a href="#" class="app-brand-link">
+            <span class="app-brand-text fw-bold fs-5">
+                🎓 CBT System
+            </span>
+        </a>
     </div>
 
-    <!-- MENU -->
-    <nav class="mt-2">
-        <ul class="nav nav-pills nav-sidebar flex-column sidebar-menu">
+    <div class="menu-inner-shadow"></div>
 
-            {{-- ADMIN --}}
-            @if (auth()->user()->role == 'admin')
+    {{-- USER --}}
+    @php
+        $user = auth()->user();
+        $nama = $user->role == 'siswa'
+            ? ($user->siswa->nama_siswa ?? $user->username)
+            : $user->username;
+    @endphp
 
-                <li class="nav-header">MASTER DATA</li>
+    <div class="text-center py-3 border-bottom">
+        <img src="https://ui-avatars.com/api/?name={{ $nama }}"
+            class="rounded-circle mb-2" width="50">
+        <div class="fw-semibold">{{ $nama }}</div>
+        <small class="text-muted text-capitalize">{{ $user->role }}</small>
+    </div>
 
-                <li class="nav-item">
-                    <a href="{{ route('user.index') }}"
-                        class="nav-link {{ request()->routeIs('user.*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-users"></i>
-                        <p>Data User</p>
+    {{-- MENU --}}
+    <ul class="menu-inner py-3">
+
+        {{-- ADMIN --}}
+        @if ($user->role == 'admin')
+
+            <li class="menu-header small text-uppercase">
+                <span>Master Data</span>
+            </li>
+
+            <li class="menu-item {{ request()->routeIs('user.*') ? 'active' : '' }}">
+                <a href="{{ route('user.index') }}" class="menu-link">
+                    <i class="menu-icon bx bx-user"></i>
+                    <div>Data User</div>
+                </a>
+            </li>
+
+            <li class="menu-item {{ request()->routeIs('siswa.*') ? 'active' : '' }}">
+                <a href="{{ route('siswa.index') }}" class="menu-link">
+                    <i class="menu-icon bx bx-user-pin"></i>
+                    <div>Data Siswa</div>
+                </a>
+            </li>
+
+            <li class="menu-item {{ request()->routeIs('kelas.*') ? 'active' : '' }}">
+                <a href="{{ route('kelas.index') }}" class="menu-link">
+                    <i class="menu-icon bx bx-buildings"></i>
+                    <div>Data Kelas</div>
+                </a>
+            </li>
+
+            <li class="menu-item {{ request()->routeIs('jurusan.*') ? 'active' : '' }}">
+                <a href="{{ route('jurusan.index') }}" class="menu-link">
+                    <i class="menu-icon bx bx-layer"></i>
+                    <div>Data Jurusan</div>
+                </a>
+            </li>
+
+        @endif
+
+
+        {{-- PENGUJI --}}
+        @if ($user->role == 'penguji')
+
+            <li class="menu-header small text-uppercase">
+                <span>Ujian</span>
+            </li>
+
+            <li class="menu-item {{ request()->routeIs('ujian.*') ? 'active' : '' }}">
+                <a href="{{ route('ujian.index') }}" class="menu-link">
+                    <i class="menu-icon bx bx-file"></i>
+                    <div>Manajemen Ujian</div>
+                </a>
+            </li>
+
+        @endif
+
+
+        {{-- SISWA --}}
+        @if ($user->role == 'siswa')
+
+            <li class="menu-header small text-uppercase">
+                <span>Menu</span>
+            </li>
+
+            @if($siswa)
+                <li class="menu-item {{ request()->is('siswa/ujian') ? 'active' : '' }}">
+                    <a href="{{ url('siswa/ujian') }}" class="menu-link">
+                        <i class="menu-icon bx bx-pencil"></i>
+                        <div>Mulai Ujian</div>
                     </a>
                 </li>
-
-                <li class="nav-item">
-                    <a href="{{ route('siswa.index') }}"
-                        class="nav-link {{ request()->routeIs('siswa.*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-user-graduate"></i>
-                        <p>Data Siswa</p>
+            @else
+                <li class="menu-item disabled">
+                    <a href="#" class="menu-link">
+                        <i class="menu-icon bx bx-lock"></i>
+                        <div>Isi Data Diri Dulu</div>
                     </a>
                 </li>
-
-                <li class="nav-item">
-                    <a href="{{ route('kelas.index') }}"
-                        class="nav-link {{ request()->routeIs('kelas.*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-school"></i>
-                        <p>Data Kelas</p>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="{{ route('jurusan.index') }}"
-                        class="nav-link {{ request()->routeIs('jurusan.*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-layer-group"></i>
-                        <p>Data Jurusan</p>
-                    </a>
-                </li>
-
             @endif
 
-            {{-- PENGUJI --}}
-            @if (auth()->user()->role == 'penguji')
+            <li class="menu-item {{ request()->routeIs('datadiri.*') ? 'active' : '' }}">
+                <a href="{{ route('datadiri.index') }}" class="menu-link">
+                    <i class="menu-icon bx bx-id-card"></i>
+                    <div>Data Diri</div>
+                </a>
+            </li>
 
-                <li class="nav-header">UJIAN</li>
-
-                <li class="nav-item">
-                    <a href="{{ route('ujian.index') }}"
-                        class="nav-link {{ request()->routeIs('ujian.*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-file-alt"></i>
-                        <p>Manajemen Ujian</p>
-                    </a>
-                </li>
-
-            @endif
-
-            {{-- SISWA --}}
-            @if (auth()->user()->role == 'siswa')
-
-                <li class="nav-header">MENU</li>
-
-               @if($siswa)
-                    <li class="nav-item">
-                        <a href="{{ url('siswa/ujian') }}"
-                            class="nav-link {{ request()->is('siswa/ujian') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-pencil-alt"></i>
-                            <p>Mulai Ujian</p>
-                        </a>
-                    </li>
-                    @else
-                    <li class="nav-item">
-                        <a href="#" class="nav-link disabled text-muted">
-                            <i class="nav-icon fas fa-lock"></i>
-                            <p>Mulai Ujian (Isi Data Diri dulu)</p>
-                        </a>
-                    </li>
-                @endif
-
-                <li class="nav-item">
-                    <a href="{{ route('datadiri.index') }}"
-                        class="nav-link {{ request()->routeIs('datadiri.*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-id-card"></i>
-                        <p>Data Diri</p>
-                    </a>
-                </li>
-
-            @endif
-
-            {{-- PENGAWAS --}}
-            @if (auth()->user()->role == 'pengawas')
-
-                <li class="nav-header">MONITORING</li>
-
-                <li class="nav-item">
-                    <a href="{{ url('pengawas/monitoring') }}"
-                        class="nav-link {{ request()->is('pengawas/monitoring') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-desktop"></i>
-                        <p>Monitoring Ujian</p>
-                    </a>
-                </li>
-
-            @endif
-
-        </ul>
-    </nav>
-</div><!-- BRAND -->
+        @endif
 
 
-<style>
+        {{-- PENGAWAS --}}
+        @if ($user->role == 'pengawas')
 
-/* RESET DEFAULT ADMINLTE */
-.nav-sidebar {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-left: 0 !important;
-}
+            <li class="menu-header small text-uppercase">
+                <span>Monitoring</span>
+            </li>
 
-/* NAV ITEM */
-.nav-sidebar .nav-item {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-}
+            <li class="menu-item {{ request()->is('pengawas/monitoring') ? 'active' : '' }}">
+                <a href="{{ url('pengawas/monitoring') }}" class="menu-link">
+                    <i class="menu-icon bx bx-desktop"></i>
+                    <div>Monitoring Ujian</div>
+                </a>
+            </li>
 
-/* NAV LINK JADI BUTTON */
-.nav-sidebar .nav-link {
-    width: 80%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+        @endif
 
-    gap: 12px;
-    padding: 12px 18px;
-
-    border-radius: 14px;
-
-    color: #cbd5f5;
-    font-weight: 500;
-
-    transition: all 0.25s ease;
-}
-
-/* FIX POSISI BIAR TIDAK KEKANAN */
-.nav-sidebar .nav-link {
-    margin: 6px auto; /* 🔥 ini bikin center beneran */
-}
-
-/* ICON */
-.nav-sidebar .nav-icon {
-    font-size: 16px;
-    width: 20px;
-    text-align: center;
-}
-
-/* TEXT */
-.nav-sidebar .nav-link p {
-    margin: 0;
-    text-align: center;
-}
-
-/* HOVER EFFECT */
-.nav-sidebar .nav-link:hover {
-    background: rgba(59,130,246,0.15);
-    transform: translateY(-2px) scale(1.02);
-}
-
-/* ACTIVE MENU */
-.nav-sidebar .nav-link.active {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: white;
-    box-shadow: 0 6px 18px rgba(59,130,246,0.35);
-    transform: scale(1.03);
-}
-
-.nav-sidebar .nav-link.active::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    height: 60%;
-    width: 4px;
-    background: white;
-    border-radius: 0 5px 5px 0;
-}
-
-/* HEADER TEXT */
-.nav-header {
-    text-align: center;
-    font-size: 12px;
-    color: #94a3b8;
-    margin-top: 15px;
-    margin-bottom: 5px;
-    letter-spacing: 1px;
-}
-
-/* USER PANEL */
-.user-panel {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    padding-bottom: 15px;
-}
-
-/* AVATAR */
-.user-panel .image img {
-    width: 45px;
-    height: 45px;
-    margin-bottom: 8px;
-}
-
-/* USER NAME */
-.user-panel .info a {
-    font-size: 14px;
-}
-
-/* ROLE */
-.user-panel small {
-    font-size: 11px;
-}
-
-/* BRAND */
-.brand-link {
-    justify-content: center;
-    text-align: center;
-}
-
-.brand-text {
-    font-size: 16px;
-    letter-spacing: 1px;
-}
-
-/* ANIMASI HALUS */
-.nav-link, .nav-icon {
-    transition: all 0.2s ease-in-out;
-}
-
-</style>
+    </ul>
+</aside>

@@ -31,7 +31,7 @@ class LoginController extends Controller
 
                 // ================= ADMIN =================
                 case 'admin':
-                    return redirect()->to('/dashboard');
+                    return redirect()->to('admin/dashboard');
 
                 // ================= PENGUJI =================
                 case 'penguji':

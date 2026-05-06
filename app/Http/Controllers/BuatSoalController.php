@@ -81,11 +81,14 @@ class BuatSoalController extends Controller
     public function edit($ujianId, $id)
     {
         $ujian = Ujian::findOrFail($ujianId);
-        $edit = Pertanyaan::findOrFail($id);
+
+        $edit = Pertanyaan::where('id', $id)
+            ->where('ujian_id', $ujianId)
+            ->firstOrFail();
 
         $soals = Pertanyaan::where('ujian_id', $ujianId)->get();
 
-        return view('ujian.soal', compact('ujian','soals','edit'));
+        return view('ujian.soal', compact('ujian', 'soals', 'edit'));
     }
 
     public function update(Request $request, $id)
@@ -101,23 +104,21 @@ class BuatSoalController extends Controller
             'jawaban_benar' => $request->jawaban_benar,
         ]);
 
-        return redirect()->route('soal.create', [
-            'ujian' => $soal->ujian_id,
-            'tipe' => $soal->tipe
-        ])->with('success', 'Soal berhasil diupdate');
+        return redirect()
+            ->route('soal.create', $soal->ujian_id) // 🔥 FIX
+            ->with('success', 'Soal berhasil diupdate');
     }
 
-    public function destroy($ujian, $id)
+    public function destroy($ujianId, $id)
     {
-        $soal = Pertanyaan::findOrFail($id);
-
-        $tipe = $soal->tipe; // simpan dulu sebelum delete
+        $soal = Pertanyaan::where('id', $id)
+            ->where('ujian_id', $ujianId)
+            ->firstOrFail();
 
         $soal->delete();
 
-        return redirect()->route('soal.create', [
-            'ujian' => $ujian,
-            'tipe' => $tipe
-        ])->with('success', 'Soal berhasil dihapus');
+        return redirect()
+            ->route('soal.create', $ujianId)
+            ->with('success', 'Soal berhasil dihapus');
     }
 }

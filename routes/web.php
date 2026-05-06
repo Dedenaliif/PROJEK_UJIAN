@@ -29,8 +29,6 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::middleware('auth')->group(function () {
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
     /*
     |--------------------------------------------------------------------------
     | ADMIN
@@ -39,6 +37,7 @@ Route::middleware('auth')->group(function () {
     */
     Route::middleware('role:admin')->prefix('admin')->group(function () {
 
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::resource('user', UserController::class)->except(['show']);
         Route::resource('siswa', SiswaController::class);
         Route::resource('kelas', KelasController::class);

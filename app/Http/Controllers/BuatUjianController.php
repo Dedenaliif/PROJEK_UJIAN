@@ -8,42 +8,55 @@ use App\Models\PercobaanUjian;
 use Illuminate\Support\Carbon;
 use App\Models\Jawaban;
 use App\Models\Kelas;
+use App\Models\Pertanyaan;
 
 class BuatUjianController extends Controller
 {
+   private function hitungNilai($percobaan)
+    {
+        $jawaban = Jawaban::where('percobaan_ujian_id', $percobaan->id)->get();
+
+        $totalSoal = Pertanyaan::where('ujian_id', $percobaan->ujian_id)->count();
+
+        $benar = $jawaban->where('benar', 1)->count();
+
+        $nilai = $totalSoal > 0
+            ? round(($benar / $totalSoal) * 100)
+            : 0;
+
+        return [
+            'skor' => $benar,   // jumlah benar
+            'nilai' => $nilai   // persen
+        ];
+    }
+
     public function checkStatus()
     {
-        // 🔥 HANYA SISWA
         if (Auth::user()->role !== 'siswa') {
             return response()->json(['redirect' => null]);
         }
 
-        $userId = Auth::id();
-
-        $aktif = PercobaanUjian::where('user_id', $userId)
+        $aktif = PercobaanUjian::where('user_id', Auth::id())
             ->where('status', 'sedang dikerjakan')
             ->get();
 
         foreach ($aktif as $p) {
 
             $ujian = Ujian::find($p->ujian_id);
-
             if (!$ujian) continue;
 
-            // 🔥 FIX WAJIB
-            $waktuMulai = Carbon::parse($p->waktu_mulai);
-            $waktuSelesai = $waktuMulai->copy()->addMinutes((int) $ujian->waktu);
+            $end = Carbon::parse($p->waktu_mulai)
+                ->addMinutes((int) $ujian->waktu);
 
-            if (now()->greaterThan($waktuSelesai)) {
+            if (now()->greaterThan($end)) {
 
-                $totalSkor = Jawaban::where('percobaan_ujian_id', $p->id)
-                    ->sum('skor');
+                $hasil = $this->hitungNilai($p);
 
                 $p->update([
                     'status' => 'selesai',
                     'waktu_selesai' => now(),
-                    'skor' => $totalSkor,
-                    'nilai' => $totalSkor
+                    'skor' => $hasil['nilai'],
+                    'nilai' => $hasil['nilai']
                 ]);
 
                 return response()->json([
@@ -55,14 +68,14 @@ class BuatUjianController extends Controller
         return response()->json(['redirect' => null]);
     }
 
+    // ==============================
+    // 🔥 HALAMAN LIST UJIAN
+    // ==============================
     public function index()
     {
-        // 🔥 JANGAN CEK STATUS UNTUK NON SISWA
         if (Auth::user()->role === 'siswa') {
 
-            $userId = Auth::id();
-
-            $aktif = PercobaanUjian::where('user_id', $userId)
+            $aktif = PercobaanUjian::where('user_id', Auth::id())
                 ->where('status', 'sedang dikerjakan')
                 ->get();
 
@@ -71,19 +84,18 @@ class BuatUjianController extends Controller
                 $ujian = Ujian::find($p->ujian_id);
                 if (!$ujian) continue;
 
-                $waktuMulai = Carbon::parse($p->waktu_mulai);
-                $waktuSelesai = $waktuMulai->copy()->addMinutes((int) $ujian->waktu);
+                $end = Carbon::parse($p->waktu_mulai)
+                    ->addMinutes((int) $ujian->waktu);
 
-                if (now()->greaterThan($waktuSelesai)) {
+                if (now()->greaterThan($end)) {
 
-                    $totalSkor = Jawaban::where('percobaan_ujian_id', $p->id)
-                        ->sum('skor');
+                    $hasil = $this->hitungNilai($p);
 
                     $p->update([
                         'status' => 'selesai',
                         'waktu_selesai' => now(),
-                        'skor' => $totalSkor,
-                        'nilai' => $totalSkor
+                        'skor' => $hasil['nilai'],
+                        'nilai' => $hasil['nilai']
                     ]);
 
                     return redirect()->route('ujian.hasil', $p->ujian_id);
@@ -91,7 +103,6 @@ class BuatUjianController extends Controller
             }
         }
 
-        // 🔥 QUERY OPTIMAL
         $ujians = Ujian::withCount([
             'percobaanUjians as jumlah_percobaan' => function ($q) {
                 $q->where('user_id', Auth::id());
@@ -101,6 +112,9 @@ class BuatUjianController extends Controller
         return view('ujian.index', compact('ujians'));
     }
 
+    // ==============================
+    // 🔥 REPORT
+    // ==============================
     public function report($ujianId)
     {
         $ujian = Ujian::findOrFail($ujianId);
@@ -108,37 +122,48 @@ class BuatUjianController extends Controller
         $listKelas = Kelas::all();
         $listJurusan = \App\Models\Jurusan::all();
 
-        $query = PercobaanUjian::with([
+        $data = PercobaanUjian::with([
             'user.siswa.kelas',
             'user.siswa.jurusan'
-        ])->where('ujian_id', $ujianId);
+        ])
+        ->where('ujian_id', $ujianId)
+        ->where('status', 'selesai') // 🔥 PENTING
+        ->get()
+        ->map(function ($item) {
 
-        // 🔥 FILTER
+            // 🔥 HITUNG ULANG BIAR 100% AKURAT
+            $hasil = $this->hitungNilai($item);
+
+            $item->skor = $hasil['skor'];
+            $item->nilai = $hasil['nilai'];
+
+            return $item;
+        });
+
+        // FILTER
         if (request('status') == 'lulus') {
-            $query->where('skor', '>=', 75);
+            $data = $data->where('nilai', '>=', 75);
         } elseif (request('status') == 'remedial') {
-            $query->where('skor', '<', 75);
+            $data = $data->where('nilai', '<', 75);
         }
 
         if (request('kelas_id')) {
-            $query->whereHas('user.siswa', function ($q) {
-                $q->where('kelas_id', request('kelas_id'));
-            });
+            $data = $data->filter(fn($d) =>
+                optional($d->user->siswa)->kelas_id == request('kelas_id')
+            );
         }
 
         if (request('jurusan_id')) {
-            $query->whereHas('user.siswa', function ($q) {
-                $q->where('jurusan_id', request('jurusan_id'));
-            });
+            $data = $data->filter(fn($d) =>
+                optional($d->user->siswa)->jurusan_id == request('jurusan_id')
+            );
         }
 
-        $data = $query->get();
-
-        // 🔥 STATISTIK
+        // STATISTIK
         $totalSiswa = $data->count();
-        $lulus = $data->where('skor', '>=', 75)->count();
-        $remedial = $data->where('skor', '<', 75)->count();
-        $rata = round($data->avg('skor') ?? 0, 2);
+        $lulus = $data->where('nilai', '>=', 75)->count();
+        $remedial = $data->where('nilai', '<', 75)->count();
+        $rata = round($data->avg('nilai') ?? 0, 2);
 
         return view('ujian.halaman-report', compact(
             'ujian',
@@ -152,6 +177,9 @@ class BuatUjianController extends Controller
         ));
     }
 
+    // ==============================
+    // 🔥 EXPORT CSV
+    // ==============================
     public function exportCsv($ujianId)
     {
         $ujian = Ujian::findOrFail($ujianId);
@@ -161,11 +189,10 @@ class BuatUjianController extends Controller
             'user.siswa.jurusan'
         ])->where('ujian_id', $ujianId);
 
-        // 🔥 FILTER
         if (request('status') == 'lulus') {
-            $query->where('skor', '>=', 75);
+            $query->where('nilai', '>=', 75);
         } elseif (request('status') == 'remedial') {
-            $query->where('skor', '<', 75);
+            $query->where('nilai', '<', 75);
         }
 
         if (request('kelas_id')) {
@@ -180,7 +207,7 @@ class BuatUjianController extends Controller
             });
         }
 
-        $data = $query->orderByDesc('skor')->get();
+        $data = $query->orderByDesc('nilai')->get();
 
         $filename = "Laporan-" . str_replace(' ', '-', $ujian->judul) . "-" . date('Ymd-Hi') . ".csv";
 
@@ -200,8 +227,8 @@ class BuatUjianController extends Controller
                     $item->user->siswa->nama_siswa ?? '-',
                     $item->user->siswa->kelas->nama_kelas ?? '-',
                     $item->user->siswa->jurusan->nama_jurusan ?? '-',
-                    $item->skor ?? 0,
-                    $item->skor >= 75 ? 'Lulus' : 'Remedial',
+                    $item->nilai ?? 0,
+                    $item->nilai >= 75 ? 'Lulus' : 'Remedial',
                 ], ';');
             }
 
@@ -213,6 +240,9 @@ class BuatUjianController extends Controller
         ]);
     }
 
+    // ==============================
+    // 🔥 CREATE & STORE
+    // ==============================
     public function create()
     {
         return view('ujian.create');
@@ -224,7 +254,7 @@ class BuatUjianController extends Controller
             'judul' => 'required',
             'tipe' => 'required',
             'deskripsi' => 'nullable',
-            'waktu' => 'required|integer', // 🔥 FIX
+            'waktu' => 'required|integer',
             'max_percobaan' => 'required|integer',
             'waktu_mulai' => 'nullable|date',
             'waktu_selesai' => 'nullable|date',
@@ -232,7 +262,7 @@ class BuatUjianController extends Controller
 
         Ujian::create($validatedData);
 
-        return redirect()->route('ujian.create')
+        return redirect()->route('ujian.index')
             ->with('success', 'Ujian berhasil dibuat!');
     }
 }

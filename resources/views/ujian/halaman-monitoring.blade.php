@@ -1,55 +1,55 @@
 @extends('dashboard.index')
 
 @section('content')
-<div class="container-fluid py-4 px-4">
+<div class="container-fluid py-4 px-5">
 
     {{-- HEADER --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h4 class="fw-bold mb-1">Monitoring Ujian</h4>
+            <h3 class="fw-bold mb-1">Monitoring Ujian</h3>
             <small class="text-muted">{{ $ujian->judul }}</small>
         </div>
 
-        <span class="badge bg-primary px-3 py-2">
+        <span class="badge bg-primary px-4 py-2 fs-6 shadow-sm">
             {{ ucfirst($ujian->tipe) }}
         </span>
     </div>
 
     {{-- STATISTIK --}}
-    <div class="row g-3 mb-4 text-center">
+    <div class="row g-4 mb-4 text-center">
 
         <div class="col-md-3">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <small class="text-muted">Total</small>
-                    <h3 id="statTotal">0</h3>
+            <div class="card stat-card shadow-sm border-0">
+                <div class="card-body py-4">
+                    <small>Total Peserta</small>
+                    <h2 id="statTotal" class="fw-bold mt-2">0</h2>
                 </div>
             </div>
         </div>
 
         <div class="col-md-3">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <small class="text-muted text-primary">Mengerjakan</small>
-                    <h3 id="statKerja" class="text-primary">0</h3>
+            <div class="card stat-card shadow-sm border-0 border-start border-primary border-4">
+                <div class="card-body py-4">
+                    <small class="text-primary">Mengerjakan</small>
+                    <h2 id="statKerja" class="fw-bold text-primary mt-2">0</h2>
                 </div>
             </div>
         </div>
 
         <div class="col-md-3">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <small class="text-muted text-success">Selesai</small>
-                    <h3 id="statSelesai" class="text-success">0</h3>
+            <div class="card stat-card shadow-sm border-0 border-start border-success border-4">
+                <div class="card-body py-4">
+                    <small class="text-success">Selesai</small>
+                    <h2 id="statSelesai" class="fw-bold text-success mt-2">0</h2>
                 </div>
             </div>
         </div>
 
         <div class="col-md-3">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <small class="text-muted text-danger">Offline</small>
-                    <h3 id="statOffline" class="text-danger">0</h3>
+            <div class="card stat-card shadow-sm border-0 border-start border-danger border-4">
+                <div class="card-body py-4">
+                    <small class="text-danger">Offline</small>
+                    <h2 id="statOffline" class="fw-bold text-danger mt-2">0</h2>
                 </div>
             </div>
         </div>
@@ -57,32 +57,63 @@
     </div>
 
     {{-- TABLE --}}
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header bg-white py-3 px-4 border-bottom">
             <h6 class="mb-0 fw-bold">Status Siswa (Realtime)</h6>
         </div>
 
-        <div class="table-responsive">
-           <table id="monitoringTable" class="table table-hover align-middle">
+        <div class="card-body p-4">
 
-                <thead class="table-dark text-center">
-                    <tr>
-                        <th>NIS</th>
-                        <th>Nama</th>
-                        <th>Kelas</th>
-                        <th>Jurusan</th>
-                        <th width="200">Progress</th>
-                        <th>Status</th>
-                        <th>Mulai</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
+            <div class="table-responsive">
+                <table id="monitoringTable" class="table table-hover align-middle w-100">
 
-            </table>
+                    <thead class="table-light text-center">
+                        <tr>
+                            <th>NIS</th>
+                            <th class="text-start">Nama</th>
+                            <th>Kelas</th>
+                            <th>Jurusan</th>
+                            <th width="220">Progress</th>
+                            <th>Status</th>
+                            <th>Mulai</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+
+                    <tbody></tbody>
+
+                </table>
+            </div>
+
         </div>
     </div>
 
 </div>
+
+{{-- STYLE TAMBAHAN --}}
+<style>
+.stat-card {
+    border-radius: 14px;
+    transition: 0.2s;
+}
+.stat-card:hover {
+    transform: translateY(-4px);
+}
+
+.table td, .table th {
+    vertical-align: middle;
+    padding: 14px 12px;
+}
+
+.progress {
+    border-radius: 10px;
+    background: #f1f1f1;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+</style>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -97,6 +128,7 @@ $(document).ready(function() {
 
     table = $('#monitoringTable').DataTable({
         processing: false,
+        destroy: true,
         ajax: {
             url: "{{ route('monitoring.data', $ujian->id) }}",
               dataSrc: function(res) {

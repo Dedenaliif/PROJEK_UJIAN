@@ -15,136 +15,152 @@ Swal.fire({
 </script>
 @endif
 
-<section class="content-header">
-    <div class="container-fluid">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold mb-0">Manajemen User</h4>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">Manajemen User</h4>
 
-            <div class="d-flex gap-2">
-                {{-- DOWNLOAD TEMPLATE --}}
-                <a href="{{ route('siswa.template') }}" class="btn btn-success btn-sm m-2">
-                    <i class="fas fa-download"></i> Download Template CSV
-                </a>
+    <div class="d-flex gap-2">
 
-                {{-- TAMBAH USER --}}
-                <button class="btn btn-primary btn-sm m-2" data-toggle="modal" data-target="#modal-tambah-user">
-                    <i class="fas fa-plus"></i> Tambah
-                </button>
-            </div>
-        </div>
+        <a href="{{ route('siswa.template') }}" class="btn btn-success">
+            <i class="bx bx-download"></i> Template CSV
+        </a>
 
-        {{-- CARD IMPORT --}}
-        <div class="card mb-3">
-            <div class="card-body">
-                <form action="{{ route('siswa.import') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div class="row align-items-center border p-3 border-amber-200">
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Upload CSV Siswa</label>
-                            <input type="file" name="file" class="form-control mt-0" accept=".csv" required>
-                            <small class="text-muted">Format: Nama, Jurusan</small>
-                        </div>
-
-                        <div class="col-md-3">
-                            <button type="submit" class="btn btn-primary w-100">
-                                Generate User
-                            </button>
-                        </div>
-
-                    </div>
-                </form>
-            </div>
-        </div>
+        <button class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#modal-tambah-user">
+            <i class="bx bx-plus"></i> Tambah
+        </button>
 
     </div>
-</section>
+</div>
 
-<section class="content">
-    <div class="container-fluid">
+{{-- IMPORT --}}
+<div class="card mb-4">
+    <div class="card-body">
 
-        <div class="card">
+        <form action="{{ route('siswa.import') }}" method="POST" enctype="multipart/form-data">
+            @csrf
 
-            <div class="card-header">
-                <h6 class="mb-0">Daftar User</h6>
+            <div class="row align-items-end g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Upload CSV</label>
+                    <input type="file" name="file" class="form-control" accept=".csv" required>
+                    <small class="text-muted">Format: Nama, Jurusan</small>
+                </div>
+
+                <div class="col-md-3">
+                    <button class="btn btn-primary w-100">
+                        Generate User
+                    </button>
+                </div>
+
             </div>
 
-            <div class="card-body">
+        </form>
 
-                <table id="table-kelas" class="table table-bordered table-hover">
-                    <thead class="table-light text-center">
+    </div>
+</div>
+
+{{-- TABLE --}}
+<div class="card">
+    <div class="card-header">
+        <h6 class="mb-0">Daftar User</h6>
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+            <table class="table table-hover text-center">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>No</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @forelse ($users as $u)
                         <tr>
-                            <th width="50">No</th>
-                            <th>Username</th>
-                            <th width="150">Role</th>
-                            <th width="180">Aksi</th>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $u->username }}</td>
+                            <td>
+                                @php
+                                    $badge = match($u->role) {
+                                        'admin' => 'bg-danger',
+                                        'penguji' => 'bg-primary',
+                                        'pengawas' => 'bg-warning',
+                                        'siswa' => 'bg-success',
+                                        default => 'bg-secondary'
+                                    };
+                                @endphp
+
+                                <span class="badge {{ $badge }}">
+                                    {{ $u->role }}
+                                </span>
+                            </td>
+
+                            <td>
+
+                                <button class="btn btn-warning btn-sm btn-edit_user"
+                                    data-id="{{ $u->id }}"
+                                    data-username="{{ $u->username }}"
+                                    data-role="{{ $u->role }}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modal-edit">
+                                    Edit
+                                </button>
+
+                                <button class="btn btn-danger btn-sm"
+                                    onclick="confirmDelete({{ $u->id }})">
+                                    Hapus
+                                </button>
+
+                                <form id="delete-form-{{ $u->id }}"
+                                    action="{{ route('user.destroy', $u->id) }}"
+                                    method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                </form>
+
+                            </td>
                         </tr>
-                    </thead>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="text-muted">
+                                Data user belum ada
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
 
-                    <tbody>
-                        @forelse ($users as $u)
-                            <tr>
-                                <td class="text-center">{{ $loop->iteration }}</td>
-                                <td class="text-center">{{ $u->username }}</td>
-                                <td class="text-center">
-                                   @php
-                                        $badgeColor = match($u->role) {
-                                            'admin' => 'bg-danger',
-                                            'penguji' => 'bg-primary',
-                                            'pengawas' => 'bg-warning',
-                                            'siswa' => 'bg-success',
-                                            default => 'bg-secondary'
-                                        };
-                                    @endphp
-
-                                    <span class="badge {{ $badgeColor }} text-capitalize">
-                                        {{ $u->role }}
-                                    </span>
-                                </td>
-                                <td class="text-center">
-
-                                    <button class="btn btn-warning btn-sm btn-edit_user"
-                                        data-id="{{ $u->id }}"
-                                        data-username="{{ $u->username }}"
-                                        data-role="{{ $u->role }}"
-                                        data-toggle="modal"
-                                        data-target="#modal-edit">
-                                        Edit
-                                    </button>
-
-                                    <button class="btn btn-danger btn-sm"
-                                        onclick="confirmDelete({{ $u->id }})">
-                                        Hapus
-                                    </button>
-
-                                    <form id="delete-form-{{ $u->id }}"
-                                        action="{{ route('user.destroy', $u->id) }}"
-                                        method="POST">
-                                        @csrf
-                                        @method('DELETE')
-                                    </form>
-
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="text-center text-muted">
-                                    Data user belum ada
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-
-                </table>
-
-            </div>
+            </table>
         </div>
+
     </div>
-</section>
+</div>
 
 @include('user.edit')
 @include('user.create')
 
+<script>
+document.querySelectorAll('.btn-edit_user').forEach(btn => {
+    btn.addEventListener('click', function () {
+
+        let id = this.dataset.id;
+        let username = this.dataset.username;
+        let role = this.dataset.role;
+
+        document.getElementById('edit-username').value = username;
+        document.getElementById('edit-role').value = role;
+
+        document.getElementById('form-edit').action = '/admin/user/' + id;
+    });
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function confirmDelete(id) {
     Swal.fire({
@@ -152,9 +168,8 @@ function confirmDelete(id) {
         text: "Data tidak bisa dikembalikan!",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Ya, hapus!'
+        confirmButtonText: 'Ya, hapus!',
+        cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
             document.getElementById('delete-form-' + id).submit();
@@ -162,5 +177,4 @@ function confirmDelete(id) {
     });
 }
 </script>
-
 @endsection

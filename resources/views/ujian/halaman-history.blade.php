@@ -1,74 +1,136 @@
 @extends('dashboard.index')
 
 @section('content')
-    <div class="container py-5 col-md-12 px-4">
-        <div class="mb-4">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="#">Riwayat Ujian</a></li>
-                    <li class="breadcrumb-item active">Detail Percobaan</li>
-                </ol>
-            </nav>
-            <h3 class="fw-bold">{{ $ujian->judul }}</h3>
-            <p class="text-muted">Nama: <strong>{{ $siswa->nama_siswa }}</strong> | Batas Percobaan:
-                {{ $ujian->max_percobaan }} kali</p>
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    {{-- HEADER --}}
+    <div class="mb-4">
+        <h4 class="fw-bold mb-1">{{ $ujian->judul }}</h4>
+        <small class="text-muted">
+            {{ $siswa->nama_siswa ?? '-' }} • Maksimal {{ $ujian->max_percobaan }}x percobaan
+        </small>
+    </div>
+
+    {{-- CARD FULL WIDTH --}}
+    <div class="card shadow-sm border-0 rounded-4">
+
+        <div class="card-header bg-white border-0 py-3 px-4">
+            <h6 class="mb-0 fw-semibold">Riwayat Percobaan</h6>
         </div>
 
-        <div class="card border-0 shadow-sm">
+        <div class="card-body px-4 pb-4">
+
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                <table class="table table-hover align-middle">
+
+                    <thead class="table-light text-center">
                         <tr>
-                            <th class="ps-4" style="width: 100px;">Percobaan</th>
-                            <th>Waktu Pengerjaan</th>
+                            <th>#</th>
+                            <th class="text-start">Waktu</th>
                             <th>Durasi</th>
-                            <th>Skor Akhir</th>
+                            <th>Nilai</th>
                             <th>Status</th>
-                            <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
+
                     <tbody>
-                        @foreach ($attempts as $item)
-                            <tr class="{{ $item->skor == $maxScore ? 'best-attempt' : '' }}">
-                                <td class="ps-4">
-                                    <div class="attempt-number border-warning text-warning">{{ $item->percobaan_ke }}</div>
-                                </td>
-                                <td>
-                                    <span
-                                        class="d-block fw-bold">{{ \Carbon\Carbon::parse($item->waktu_mulai)->format('d M Y') }}</span>
-                                    <small class="text-muted">{{ \Carbon\Carbon::parse($item->waktu_mulai)->format('H:i') }}
-                                        -
-                                        {{ \Carbon\Carbon::parse($item->waktu_mulai) ? \Carbon\Carbon::parse($item->waktu_selesai)->format('H:i') : '...' }}
-                                        WIB</small>
-                                </td>
-                                <td>{{(int) \Carbon\Carbon::parse($item->waktu_mulai)->diffInMinutes($item->waktu_selesai) }} menit </td>
-                                <td>
-                                    <h5 class="mb-0 fw-bold text-success">{{ number_format($item->skor, 2) }}</h5>
-                                    @if ($item->skor == $maxScore && $attempts->count() > 2)
-                                        <small class="badge bg-warning text-dark" style="font-size: 0.7rem;">NILAI
-                                            TERTINGGI</small>
-                                    @endif
-                                </td>
-                                <td><span class=" {{ $item->skor >= 75 ? 'badge bg-success' : 'badge bg-danger' }}">{{ $item->skor >= 75 ? 'LULUS' : 'REMEDIAL' }}</span>
-                                </td>
-                                <td class="text-center">-
-                                    {{-- <button class="btn btn-sm btn-dark px-3">Lihat Jawaban</button> --}}
-                                </td>
-                            </tr>
-                        @endforeach
+                    @forelse ($attempts as $item)
+                    <tr class="{{ $item->nilai_fix == $maxScore ? 'table-warning' : '' }}">
+
+                        {{-- NO --}}
+                        <td class="text-center">
+                            <span class="badge bg-primary px-3 py-2">
+                                {{ $item->percobaan_ke }}
+                            </span>
+                        </td>
+
+                        {{-- WAKTU --}}
+                        <td>
+                            <div class="fw-semibold">
+                                {{ \Carbon\Carbon::parse($item->waktu_mulai)->format('d M Y') }}
+                            </div>
+                            <small class="text-muted">
+                                {{ \Carbon\Carbon::parse($item->waktu_mulai)->format('H:i') }}
+                                -
+                                {{ $item->waktu_selesai
+                                    ? \Carbon\Carbon::parse($item->waktu_selesai)->format('H:i')
+                                    : '--:--' }}
+                            </small>
+                        </td>
+
+                        {{-- DURASI --}}
+                        <td class="text-center">
+                            <span class="badge bg-info px-3 py-2">
+                                {{ number_format($item->durasi, 2) }} menit
+                            </span>
+                        </td>
+
+                        {{-- NILAI --}}
+                        <td class="text-center">
+                            <div class="fw-bold fs-4 text-success">
+                                {{ $item->nilai_fix }}
+                            </div>
+
+                            <div class="progress mt-1" style="height:6px;">
+                                <div class="progress-bar bg-success"
+                                    style="width: {{ $item->nilai_fix }}%">
+                                </div>
+                            </div>
+
+                            @if ($item->nilai_fix == $maxScore && $attempts->count() > 1)
+                                <small class="badge bg-warning text-dark mt-1">
+                                    ⭐ Tertinggi
+                                </small>
+                            @endif
+                        </td>
+
+                        {{-- STATUS --}}
+                        <td class="text-center">
+                            <span class="badge px-3 py-2
+                                {{ $item->nilai_fix >= 75 ? 'bg-success' : 'bg-danger' }}">
+                                {{ $item->nilai_fix >= 75 ? 'LULUS' : 'REMEDIAL' }}
+                            </span>
+                        </td>
+
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            Belum ada percobaan
+                        </td>
+                    </tr>
+                    @endforelse
                     </tbody>
+
                 </table>
             </div>
+
         </div>
 
-        {{-- <div class="mt-4 p-3 bg-white border rounded shadow-sm">
-            <div class="d-flex align-items-center">
-                <i class="bi bi-info-circle-fill text-primary me-3 fs-4"></i>
-                <div>
-                    <p class="mb-0 small text-muted">Sistem mengambil <strong>Nilai Tertinggi</strong> dari semua percobaan
-                        sebagai nilai akhir rapor.</p>
-                </div>
-            </div>
-        </div> --}}
     </div>
+
+</div>
+
+<style>
+.card {
+    border-radius: 16px;
+}
+
+.table td, .table th {
+    padding: 14px;
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background: #f4f8ff;
+    transform: scale(1.01);
+    transition: 0.2s;
+}
+
+.badge {
+    border-radius: 8px;
+}
+</style>
+
 @endsection

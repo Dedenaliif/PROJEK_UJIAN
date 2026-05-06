@@ -14,31 +14,37 @@ Swal.fire({
 </script>
 @endif
 
-<div class="container-fluid py-4">
+<div class="container-xxl container-p-y">
 
-    <div class="card shadow-sm">
+    {{-- HEADER --}}
+    <div class="mb-4">
+        <h4 class="fw-bold mb-1">Buat Ujian</h4>
+        <small class="text-muted">Isi informasi ujian dengan lengkap</small>
+    </div>
 
-        {{-- HEADER --}}
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0 fw-bold">
-                <i class="fas fa-file-alt mr-2"></i> Form Create Ujian
-            </h4>
+    <div class="card shadow-sm border-0 rounded-4">
+
+        {{-- HEADER CARD --}}
+        <div class="card-header bg-label-primary rounded-top-4">
+            <h5 class="mb-0 fw-semibold">
+                Informasi Ujian
+            </h5>
         </div>
 
         {{-- BODY --}}
-        <div class="card-body">
+        <div class="card-body p-4">
 
             <form method="POST" action="{{ route('ujian.store') }}">
                 @csrf
 
-                <div class="row">
+                <div class="row g-4">
 
                     {{-- JUDUL --}}
-                    <div class="col-md-6 mb-3">
-                        <label class="font-weight-bold">Judul Ujian</label>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Judul Ujian</label>
                         <input type="text" name="judul"
-                            class="form-control @error('judul') is-invalid @enderror"
-                            placeholder="Masukkan Judul Ujian"
+                            class="form-control form-control-lg @error('judul') is-invalid @enderror"
+                            placeholder="Contoh: Ujian Microsoft Word"
                             value="{{ old('judul') }}">
 
                         @error('judul')
@@ -47,11 +53,11 @@ Swal.fire({
                     </div>
 
                     {{-- DESKRIPSI --}}
-                    <div class="col-md-6 mb-3">
-                        <label class="font-weight-bold">Deskripsi</label>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Deskripsi</label>
                         <input type="text" name="deskripsi"
-                            class="form-control @error('deskripsi') is-invalid @enderror"
-                            placeholder="Masukkan Deskripsi"
+                            class="form-control form-control-lg @error('deskripsi') is-invalid @enderror"
+                            placeholder="Deskripsi singkat ujian"
                             value="{{ old('deskripsi') }}">
 
                         @error('deskripsi')
@@ -59,9 +65,9 @@ Swal.fire({
                         @enderror
                     </div>
 
-                    {{-- WAKTU --}}
-                    <div class="col-md-6 mb-3">
-                        <label class="font-weight-bold">Durasi (Menit)</label>
+                    {{-- DURASI --}}
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Durasi (Menit)</label>
                         <input type="number" name="waktu"
                             class="form-control @error('waktu') is-invalid @enderror"
                             placeholder="Contoh: 60"
@@ -73,8 +79,8 @@ Swal.fire({
                     </div>
 
                     {{-- MAX PERCOBAAN --}}
-                    <div class="col-md-6 mb-3">
-                        <label class="font-weight-bold">Max Percobaan</label>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Max Percobaan</label>
                         <input type="number" name="max_percobaan"
                             class="form-control @error('max_percobaan') is-invalid @enderror"
                             placeholder="Contoh: 3"
@@ -86,8 +92,8 @@ Swal.fire({
                     </div>
 
                     {{-- WAKTU MULAI --}}
-                    <div class="col-md-6 mb-3">
-                        <label class="font-weight-bold">Waktu Mulai</label>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Waktu Mulai</label>
                         <input type="datetime-local" name="waktu_mulai"
                             class="form-control @error('waktu_mulai') is-invalid @enderror"
                             value="{{ old('waktu_mulai') }}">
@@ -98,8 +104,8 @@ Swal.fire({
                     </div>
 
                     {{-- WAKTU SELESAI --}}
-                    <div class="col-md-6 mb-3">
-                        <label class="font-weight-bold">Waktu Selesai</label>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Waktu Selesai</label>
                         <input type="datetime-local" name="waktu_selesai"
                             class="form-control @error('waktu_selesai') is-invalid @enderror"
                             value="{{ old('waktu_selesai') }}">
@@ -110,14 +116,18 @@ Swal.fire({
                     </div>
 
                     {{-- TIPE --}}
-                    <div class="col-md-6 mb-3">
-                        <label class="font-weight-bold">Tipe Ujian</label>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Tipe Ujian</label>
                         <select name="tipe"
-                            class="form-control @error('tipe') is-invalid @enderror">
+                            class="form-select @error('tipe') is-invalid @enderror">
 
                             <option value="">-- Pilih Tipe --</option>
-                            <option value="word" {{ old('tipe') == 'word' ? 'selected' : '' }}>Word</option>
-                            <option value="excel" {{ old('tipe') == 'excel' ? 'selected' : '' }}>Excel</option>
+                            <option value="word" {{ old('tipe') == 'word' ? 'selected' : '' }}>
+                                📄 Word
+                            </option>
+                            <option value="excel" {{ old('tipe') == 'excel' ? 'selected' : '' }}>
+                                📊 Excel
+                            </option>
 
                         </select>
 
@@ -129,14 +139,18 @@ Swal.fire({
                 </div>
 
                 {{-- FOOTER --}}
-                <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-                    <a href="{{ route('ujian.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Kembali
+                <div class="d-flex justify-content-between mt-5 pt-4 border-top">
+
+                    <a href="{{ route('ujian.index') }}"
+                        class="btn btn-outline-secondary px-4">
+                        ← Kembali
                     </a>
 
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Simpan Ujian
+                    <button type="submit"
+                        class="btn btn-primary px-4 shadow-sm">
+                        Simpan Ujian
                     </button>
+
                 </div>
 
             </form>
@@ -145,5 +159,27 @@ Swal.fire({
     </div>
 
 </div>
+
+<style>
+.container-xxl {
+    max-width: 1100px;
+    margin: auto;
+}
+
+.card {
+    border-radius: 14px;
+}
+
+.form-control,
+.form-select {
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.card-header {
+    border-bottom: none;
+}
+
+</style>
 
 @endsection

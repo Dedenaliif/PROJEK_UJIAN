@@ -2,66 +2,68 @@
 
 @section('content')
 
-<nav class="bg-white shadow-sm mb-4 border-bottom">
-    <div class="container py-4 px-4">
-    <div class="d-flex justify-content-between align-items-center flex-wrap">
+{{-- HEADER --}}
+<div class="card mb-4 shadow-sm">
+    <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
 
-        {{-- JUDUL --}}
         <div>
-            <h4 class="fw-bold text-primary mb-1">{{ $ujian->judul }}</h4>
+            <h5 class="fw-bold mb-1 text-primary">{{ $ujian->judul }}</h5>
             <small class="text-muted">
-                Ujian {{ ucfirst($ujian->tipe) }} • {{ count($soals) }} Soal
+                {{ ucfirst($ujian->tipe) }} • {{ count($soals) }} Soal
             </small>
         </div>
 
-        {{-- TIMER --}}
-        <div class="timer-box text-center px-4 py-3">
-            <div class="small text-muted mb-1">Sisa Waktu</div>
-            <div class="fw-bold text-danger fs-2" id="timer">00:00:00</div>
+        <div class="text-end">
+            <small class="text-muted">Sisa Waktu</small>
+            <h4 class="fw-bold text-danger mb-0" id="timer">00:00:00</h4>
         </div>
 
     </div>
-
 </div>
-</nav>
 
+<div class="row">
 
+    {{-- SOAL --}}
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
 
-
-<div class="container">
-    <div class="row">
-
-        {{-- SOAL --}}
-        <div class="col-md-8">
-            <div class="card p-4 shadow-lg border-0">
+            <div class="card-body">
 
                 <div class="mb-3 d-flex justify-content-between">
-                    <span class="badge bg-dark px-3 py-2">
+                    <span class="badge bg-label-primary px-3 py-2">
                         Soal <span id="nomor"></span> / {{ count($soals) }}
                     </span>
                 </div>
 
-                <h5 id="soalText" class="mb-4 fw-semibold"></h5>
+                <h5 id="soalText" class="fw-semibold mb-4"></h5>
 
                 <div id="opsiContainer"></div>
 
                 <div class="mt-4 d-flex justify-content-between">
-                    <button id="prevBtn" class="btn btn-outline-secondary px-4">← Prev</button>
-                    <button id="nextBtn" class="btn btn-primary px-4">Next →</button>
+                    <button id="prevBtn" class="btn btn-outline-secondary">
+                        ← Sebelumnya
+                    </button>
+                    <button id="nextBtn" class="btn btn-primary">
+                        Selanjutnya →
+                    </button>
                 </div>
 
             </div>
+
         </div>
+    </div>
 
-        {{-- NAVIGASI --}}
-        <div class="col-md-4">
-            <div class="card p-4 shadow-lg border-0">
+    {{-- NAVIGASI --}}
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0">
 
-                <h6 class="text-center mb-3 fw-bold">Navigasi Soal</h6>
+            <div class="card-body">
+
+                <h6 class="text-center fw-bold mb-3">Navigasi Soal</h6>
 
                 <div class="d-flex flex-wrap gap-2 justify-content-center" id="navSoal">
                     @foreach ($soals as $i => $s)
-                        <button class="nomor-btn" data-no="{{ $i + 1 }}">
+                        <button class="nomor-btn btn btn-sm" data-no="{{ $i + 1 }}">
                             {{ $i + 1 }}
                         </button>
                     @endforeach
@@ -71,73 +73,69 @@
 
                 <form id="formSelesai" method="POST" action="{{ route('ujianstart.selesai', $ujian->id) }}">
                     @csrf
-                   <button id="btnSelesai" type="submit" class="btn btn-success w-100 fw-bold">
+                    <button id="btnSelesai" type="submit" class="btn btn-success w-100 fw-bold">
                         Selesaikan Ujian
                     </button>
                 </form>
 
             </div>
-        </div>
 
+        </div>
     </div>
+
 </div>
 
+{{-- STYLE (UI ONLY) --}}
 <style>
+/* OPSI */
 .opsi {
-    border: 2px solid #eee;
-    border-radius: 10px;
-    padding: 12px;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    padding: 10px;
     transition: 0.2s;
 }
 
 .opsi:hover {
-    background: #eef4ff;
-    border-color: #0d6efd;
-    transform: scale(1.02);
+    background: #f5f7ff;
+    border-color: #696cff;
     cursor: pointer;
 }
 
 .opsi.active {
-    border-color: #0d6efd;
-    background: #e7f0ff;
+    border-color: #696cff;
+    background: #eef0ff;
 }
 
+/* NAV BUTTON */
 .nomor-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
-    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
     background: #f1f1f1;
-    font-weight: bold;
-    transition: 0.2s;
+    font-weight: 600;
 }
 
 .nomor-btn:hover {
-    transform: scale(1.1);
+    transform: scale(1.05);
 }
 
 .nomor-btn.active {
-    background: #0d6efd;
-    color: white;
+    background: #696cff;
+    color: #fff;
 }
 
 .nomor-btn.done {
-    background: #198754;
-    color: white;
+    background: #71dd37;
+    color: #fff;
 }
 
-.timer-box {
-    background: linear-gradient(135deg, #fff5f5, #ffe3e3);
-    border-radius: 14px;
-    min-width: 150px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
+/* TIMER */
 #timer {
-    transition: 0.3s;
+    letter-spacing: 1px;
 }
 </style>
 
+{{-- SCRIPT (TIDAK DIUBAH) --}}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -148,7 +146,6 @@ let jawabanUser = @json($jawabanUser);
 let current = {{ $current }};
 let total = soals.length;
 
-// 🔥 RENDER SOAL SUPER CEPAT (NO DELAY)
 function renderSoal(no) {
 
     let soal = soals[no - 1];
@@ -180,7 +177,6 @@ function renderSoal(no) {
     updateNavigasi();
 }
 
-// 🔥 UPDATE NAVIGASI (LIVE)
 function updateNavigasi() {
 
     $('.nomor-btn').each(function() {
@@ -191,7 +187,7 @@ function updateNavigasi() {
         $(this).removeClass('active done');
 
         if (jawabanUser[soal.id]) {
-            $(this).addClass('done'); // sudah jawab
+            $(this).addClass('done');
         }
 
         if (no == current) {
@@ -200,7 +196,6 @@ function updateNavigasi() {
     });
 }
 
-// 🔥 NEXT / PREV
 $('#nextBtn').click(() => {
     if (current < total) renderSoal(current + 1);
 });
@@ -209,12 +204,10 @@ $('#prevBtn').click(() => {
     if (current > 1) renderSoal(current - 1);
 });
 
-// 🔥 CLICK NAV
 $('.nomor-btn').click(function() {
     renderSoal($(this).data('no'));
 });
 
-// 🔥 SAVE + UPDATE REALTIME
 $(document).on('change', '.jawaban-radio', function() {
 
     let jawaban = $(this).val();
@@ -234,7 +227,6 @@ $(document).on('change', '.jawaban-radio', function() {
     });
 });
 
-// 🔥 INIT
 renderSoal(current);
 
 let waktuSelesai = {{ $waktuSelesai->timestamp }};
@@ -268,36 +260,19 @@ function updateTimer() {
 
 setInterval(updateTimer, 1000);
 
-function updateProgress() {
-    let total = soals.length;
-    let answered = Object.keys(jawabanUser).length;
-
-    let persen = Math.round((answered / total) * 100);
-
-    $('#progressText').text(persen + '%');
-    $('#progressBar').css('width', persen + '%');
-}
-
 $(document).on('click', '#btnSelesai', function(e) {
 
-    e.preventDefault(); // 🔥 WAJIB
+    e.preventDefault();
 
     Swal.fire({
         title: 'Yakin ingin menyelesaikan ujian?',
-        text: "Pastikan semua soal sudah dijawab!",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#198754',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Ya, Selesaikan!',
-        cancelButtonText: 'Batal'
+        confirmButtonText: 'Ya'
     }).then((result) => {
-
         if (result.isConfirmed) {
-
             $('#formSelesai').submit();
         }
-
     });
 
 });

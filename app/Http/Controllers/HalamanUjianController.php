@@ -16,13 +16,21 @@ class HalamanUjianController extends Controller
     private function forceSelesai($percobaan)
     {
         $jawaban = Jawaban::where('percobaan_ujian_id', $percobaan->id)->get();
-        $totalSkor = $jawaban->sum('skor');
+
+        $totalSoal = Pertanyaan::where('ujian_id', $percobaan->ujian_id)->count();
+
+        // 🔥 FIX DI SINI
+        $jawabanBenar = $jawaban->where('benar', 1)->count();
+
+        $nilai = $totalSoal > 0
+            ? round(($jawabanBenar / $totalSoal) * 100)
+            : 0;
 
         $percobaan->update([
             'status' => 'selesai',
             'waktu_selesai' => now(),
-            'skor' => $totalSkor,
-            'nilai' => $totalSkor
+            'skor' => $jawabanBenar,
+            'nilai' => $nilai
         ]);
 
         return redirect()->route('ujian.hasil', $percobaan->ujian_id)
@@ -151,10 +159,9 @@ class HalamanUjianController extends Controller
         }
 
         $jawaban = strtoupper($request->jawaban);
-        $benar = $jawaban === $soal->jawaban_benar;
 
-        $totalSoal = Pertanyaan::where('ujian_id', $ujianId)->count();
-        $skorPerSoal = 100 / max($totalSoal, 1);
+        // 🔥 FIX UTAMA DI SINI
+        $benar = strtoupper($jawaban) === strtoupper($soal->jawaban_benar);
 
         $data = Jawaban::where('percobaan_ujian_id', $percobaan->id)
             ->where('pertanyaan_id', $soal->id)
@@ -163,16 +170,16 @@ class HalamanUjianController extends Controller
         if ($data) {
             $data->update([
                 'pilihan_jawaban' => $jawaban,
-                'benar' => $benar,
-                'skor' => $benar ? $skorPerSoal : 0
+                'benar' => $benar ? 1 : 0,
+                'skor' => $benar ? 1 : 0
             ]);
         } else {
             Jawaban::create([
                 'percobaan_ujian_id' => $percobaan->id,
                 'pertanyaan_id' => $soal->id,
                 'pilihan_jawaban' => $jawaban,
-                'benar' => $benar,
-                'skor' => $benar ? $skorPerSoal : 0
+                'benar' => $benar ? 1 : 0,
+                'skor' => $benar ? 1 : 0
             ]);
         }
 
@@ -198,52 +205,69 @@ class HalamanUjianController extends Controller
             return redirect()->back()->with('error', 'Belum ada jawaban');
         }
 
-        $totalSkor = $jawaban->sum('skor');
+        $totalSoal = Pertanyaan::where('ujian_id', $ujianId)->count();
+
+        // 🔥 FIX DI SINI
+        $jawabanBenar = $jawaban->where('benar', 1)->count();
+
+        $nilai = $totalSoal > 0
+            ? round(($jawabanBenar / $totalSoal) * 100)
+            : 0;
 
         $percobaan->update([
             'status' => 'selesai',
             'waktu_selesai' => now(),
-            'skor' => $totalSkor,
-            'nilai' => $totalSkor
+            'skor' => $jawabanBenar,
+            'nilai' => $nilai
         ]);
 
         return redirect()->route('ujian.hasil', $ujianId);
     }
 
-    public function hasil($ujianId)
-    {
-        $percobaan = PercobaanUjian::where('user_id', Auth::id())
-            ->where('ujian_id', $ujianId)
-            ->where('status', 'selesai')
-            ->latest()
-            ->first();
+public function hasil($ujianId)
+{
+    $percobaan = PercobaanUjian::where('user_id', Auth::id())
+        ->where('ujian_id', $ujianId)
+        ->latest()
+        ->first();
 
-        if (!$percobaan) {
-            return redirect()->route('siswa.ujian')
-                ->with('error', 'Belum ada hasil ujian');
-        }
-
-        $siswa = Siswa::where('user_id', Auth::id())->first();
-        $totalSoal = Pertanyaan::where('ujian_id', $ujianId)->count();
-        $jumlahJawaban = Jawaban::where('percobaan_ujian_id', $percobaan->id)->count();
-
-        $nilai = $percobaan->skor ?? 0;
-        $lulus = $nilai >= 75;
-
-        $jumlahPercobaan = PercobaanUjian::where('user_id', Auth::id())
-            ->where('ujian_id', $ujianId)
-            ->count();
-
-        $ujian = Ujian::findOrFail($ujianId);
-        $sisaPercobaan = $ujian->max_percobaan - $jumlahPercobaan;
-
-        return view('ujian.hasil', compact(
-            'siswa',
-            'totalSoal',
-            'jumlahJawaban',
-            'nilai',
-            'lulus',
-            'sisaPercobaan'
-        ));
+    if (!$percobaan) {
+        return redirect()->route('siswa.ujian')
+            ->with('error', 'Belum ada hasil ujian');
     }
+
+    $siswa = Siswa::where('user_id', Auth::id())->first();
+
+    $jawaban = Jawaban::where('percobaan_ujian_id', $percobaan->id)->get();
+
+    $totalSoal = Pertanyaan::where('ujian_id', $ujianId)->count();
+
+    $jumlahJawaban = $jawaban->count(); // 🔥 FIX
+
+    $jawabanBenar = $jawaban->where('benar', 1)->count();
+
+    $nilai = $totalSoal > 0
+        ? round(($jawabanBenar / $totalSoal) * 100)
+        : 0;
+
+    $lulus = $nilai >= 75;
+
+    $jumlahPercobaan = PercobaanUjian::where('user_id', Auth::id())
+        ->where('ujian_id', $ujianId)
+        ->count();
+
+    $ujian = Ujian::findOrFail($ujianId);
+    $sisaPercobaan = $ujian->max_percobaan - $jumlahPercobaan;
+
+    return view('ujian.hasil', compact(
+        'siswa',
+        'totalSoal',
+        'jumlahJawaban', // 🔥 FIX
+        'jawabanBenar',
+        'nilai',
+        'lulus',
+        'sisaPercobaan'
+    ));
+}
+
 }

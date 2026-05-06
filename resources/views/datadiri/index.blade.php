@@ -2,17 +2,16 @@
 
 @section('content')
 
-<div class="container-fluid">
+<div class="container-xxl flex-grow-1 container-p-y">
 
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-lg-8">
 
-            <div class="card card-primary card-outline mt-4">
+            <div class="card border-0 shadow-sm rounded-4">
 
-                <div class="card-header text-center">
-                    <h4 class="mb-0 font-weight-bold">
-                        Form Data Diri
-                    </h4>
+                {{-- HEADER --}}
+                <div class="card-header bg-white border-0 text-center pt-4 pb-2">
+                    <h4 class="fw-bold mb-1">Form Data Diri</h4>
 
                     @if($siswa)
                         <small class="text-success">Edit Data</small>
@@ -21,13 +20,14 @@
                     @endif
                 </div>
 
-                <div class="card-body">
+                {{-- BODY --}}
+                <div class="card-body px-4 pb-4">
 
-                    {{-- 🔥 VALIDASI ERROR --}}
+                    {{-- ERROR --}}
                     @if ($errors->any())
                         <div class="alert alert-danger">
-                            <b>Terjadi kesalahan:</b>
-                            <ul class="mb-0">
+                            <strong>Terjadi kesalahan:</strong>
+                            <ul class="mb-0 mt-2">
                                 @foreach ($errors->all() as $error)
                                     <li>{{ $error }}</li>
                                 @endforeach
@@ -35,7 +35,7 @@
                         </div>
                     @endif
 
-                    {{-- 🔥 SUCCESS --}}
+                    {{-- SUCCESS --}}
                     @if (session('success'))
                         <div class="alert alert-success">
                             {{ session('success') }}
@@ -45,92 +45,85 @@
                     <form action="{{ route('datadiri.store') }}" method="POST">
                         @csrf
 
-                        <div class="row">
+                        <div class="row g-3">
 
                             {{-- NAMA --}}
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Nama Lengkap</label>
-                                    <input type="text"
-                                        name="nama_siswa"
-                                        class="form-control @error('nama_siswa') is-invalid @enderror"
-                                        value="{{ old('nama_siswa', $siswa->nama_siswa ?? '') }}"
-                                        placeholder="Masukkan Nama Lengkap">
+                                <label class="form-label fw-semibold">Nama Lengkap</label>
+                                <input type="text"
+                                    name="nama_siswa"
+                                    class="form-control @error('nama_siswa') is-invalid @enderror"
+                                    value="{{ old('nama_siswa', $siswa->nama_siswa ?? '') }}"
+                                    placeholder="Masukkan Nama Lengkap">
 
-                                    @error('nama_siswa')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                                @error('nama_siswa')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             {{-- NIS --}}
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>NIS</label>
-                                    <input type="text"
-                                        name="nis"
-                                        class="form-control @error('nis') is-invalid @enderror"
-                                        value="{{ old('nis', $siswa->nis ?? '') }}"
-                                        placeholder="Masukkan NIS">
+                                <label class="form-label fw-semibold">NIS</label>
+                                <input type="text"
+                                    name="nis"
+                                    class="form-control @error('nis') is-invalid @enderror"
+                                    value="{{ old('nis', $siswa->nis ?? '') }}"
+                                    placeholder="Masukkan NIS">
 
-                                    @error('nis')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                                @error('nis')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             {{-- KELAS --}}
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Kelas</label>
-                                    <select name="kelas"
-                                        class="form-control @error('kelas') is-invalid @enderror">
+                                <label class="form-label fw-semibold">Kelas</label>
+                                <select name="kelas"
+                                    class="form-select @error('kelas') is-invalid @enderror">
 
-                                        <option value="">-- Pilih Kelas --</option>
+                                    <option value="">-- Pilih Kelas --</option>
 
-                                        @foreach ($kelas as $item)
-                                            <option value="{{ $item->id }}"
-                                                {{ old('kelas', $siswa->kelas_id ?? '') == $item->id ? 'selected' : '' }}>
-                                                {{ $item->nama_kelas }}
-                                            </option>
-                                        @endforeach
+                                    @foreach ($kelas as $item)
+                                        <option value="{{ $item->id }}"
+                                            {{ old('kelas', $siswa->kelas_id ?? '') == $item->id ? 'selected' : '' }}>
+                                            {{ $item->nama_kelas }}
+                                        </option>
+                                    @endforeach
 
-                                    </select>
+                                </select>
 
-                                    @error('kelas')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                                @error('kelas')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             {{-- JURUSAN --}}
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Jurusan</label>
-                                    <select name="jurusan"
-                                        class="form-control @error('jurusan') is-invalid @enderror">
+                                <label class="form-label fw-semibold">Jurusan</label>
+                                <select name="jurusan"
+                                    class="form-select @error('jurusan') is-invalid @enderror">
 
-                                        <option value="">-- Pilih Jurusan --</option>
+                                    <option value="">-- Pilih Jurusan --</option>
 
-                                        @foreach ($jurusan as $item)
-                                            <option value="{{ $item->id }}"
-                                                {{ old('jurusan', $siswa->jurusan_id ?? '') == $item->id ? 'selected' : '' }}>
-                                                {{ $item->nama_jurusan }}
-                                            </option>
-                                        @endforeach
+                                    @foreach ($jurusan as $item)
+                                        <option value="{{ $item->id }}"
+                                            {{ old('jurusan', $siswa->jurusan_id ?? '') == $item->id ? 'selected' : '' }}>
+                                            {{ $item->nama_jurusan }}
+                                        </option>
+                                    @endforeach
 
-                                    </select>
+                                </select>
 
-                                    @error('jurusan')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                                @error('jurusan')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
 
                         </div>
 
-                        <div class="text-right mt-3">
-                            <button class="btn btn-primary">
+                        {{-- BUTTON --}}
+                        <div class="d-flex justify-content-end mt-4">
+                            <button class="btn btn-primary px-4">
                                 {{ $siswa ? 'Update Data' : 'Simpan Data' }}
                             </button>
                         </div>
@@ -145,5 +138,22 @@
     </div>
 
 </div>
+
+{{-- STYLE TAMBAHAN --}}
+<style>
+.card {
+    transition: 0.25s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* biar gak mepet */
+.container-xxl {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+}
+</style>
 
 @endsection

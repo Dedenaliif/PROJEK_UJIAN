@@ -3,15 +3,21 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        return view('dashboard.index');
+        $totalSiswa = User::where('role', 'siswa')->count();
+        $totalPenguji = User::where('role', 'penguji')->count();
+        $totalPengawas = User::where('role', 'pengawas')->count();
+
+        return view('dashboard.home', compact(
+            'totalSiswa',
+            'totalPenguji',
+            'totalPengawas'
+        ));
     }
 
     public function ujian()
