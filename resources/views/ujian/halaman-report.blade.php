@@ -343,11 +343,7 @@
 
                                     @empty
 
-                                        <tr>
-                                            <td colspan="8" class="text-center text-muted py-4">
-                                                Data tidak ditemukan
-                                            </td>
-                                        </tr>
+                                        
 
                                     @endforelse
 
