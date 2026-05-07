@@ -1,26 +1,15 @@
 @extends('dashboard.index')
 
 @section('content')
-@if (session('success'))
-<script>
-    Swal.fire({
-        icon: 'success',
-        title: 'Berhasil',
-        text: '{{ session('success') }}',
-        timer: 2000,
-        showConfirmButton: false
-    });
-</script>
-@endif
     <section class="content-header">
         <div class="container-fluid px-2">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1>Data Kelas</h1>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="">
+                    <h3>Manajemen Kelas</h3>
                 </div>
-                <div class="col-sm-6 text-right">
+                <div class="mb-2">
                     <!-- Tombol tambah -->
-                    <button class="btn btn-primary" data-toggle="modal" data-target="#modal-tambah-kelas">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-tambah-kelas">
                         <i class="fas fa-plus"></i> Tambah Kelas
                     </button>
                 </div>
@@ -55,13 +44,14 @@
                                     <td class="text-center">{{ $k->nama_kelas }}</td>
                                     <td class="text-center">
                                         <button class="btn btn-warning btn-sm btn-edit_kelas" data-id="{{ $k->id }}"
-                                            data-nama_kelas="{{ $k->nama_kelas }}" data-toggle="modal"
-                                            data-target="#modal-edit">Edit</button>
-                                       <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ $k->id }})">
+                                            data-nama_kelas="{{ $k->nama_kelas }}" data-bs-toggle="modal"
+                                            data-bs-target="#modal-edit">Edit</button>
+                                        <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ $k->id }})">
                                             Hapus
                                         </button>
 
-                                        <form id="delete-form-{{ $k->id }}" action="{{ route('kelas.destroy', $k->id) }}" method="POST">
+                                        <form id="delete-form-{{ $k->id }}"
+                                            action="{{ route('kelas.destroy', $k->id) }}" method="POST">
                                             @csrf
                                             @method('DELETE')
                                         </form>
@@ -84,21 +74,41 @@
     @include('kelas.modaledit')
     @include('kelas.modaldelete')
     @include('kelas.modalcreate')
+
     <script>
-    function confirmDelete(id) {
-        Swal.fire({
-            title: 'Yakin hapus?',
-            text: "Data tidak bisa dikembalikan!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, hapus!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('delete-form-' + id).submit();
-            }
+        document.addEventListener("DOMContentLoaded", function() {
+
+            const editButtons = document.querySelectorAll('.btn-edit_kelas');
+
+            editButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+
+                    let id = this.dataset.id;
+                    let nama = this.dataset.nama_kelas;
+
+                    document.getElementById('edit-nama_kelas').value = nama;
+
+                    document.getElementById('form-edit').action = `/admin/kelas/${id}`;
+                });
+            });
+
         });
-    }
+    </script>
+    <script>
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Yakin hapus?',
+                text: "Data tidak bisa dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, hapus!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + id).submit();
+                }
+            });
+        }
     </script>
 @endsection

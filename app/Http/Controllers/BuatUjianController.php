@@ -12,7 +12,7 @@ use App\Models\Pertanyaan;
 
 class BuatUjianController extends Controller
 {
-   private function hitungNilai($percobaan)
+    private function hitungNilai($percobaan)
     {
         $jawaban = Jawaban::where('percobaan_ujian_id', $percobaan->id)->get();
 
@@ -121,25 +121,70 @@ class BuatUjianController extends Controller
 
         $listKelas = Kelas::all();
         $listJurusan = \App\Models\Jurusan::all();
-
         $data = PercobaanUjian::with([
             'user.siswa.kelas',
             'user.siswa.jurusan'
         ])
-        ->where('ujian_id', $ujianId)
-        ->where('status', 'selesai') // 🔥 PENTING
-        ->get()
-        ->map(function ($item) {
+            ->where('ujian_id', $ujianId)
+            ->where('status', 'selesai')
+            ->get()
 
-            // 🔥 HITUNG ULANG BIAR 100% AKURAT
-            $hasil = $this->hitungNilai($item);
+            // hitung ulang nilai
+            ->map(function ($item) {
 
-            $item->skor = $hasil['skor'];
-            $item->nilai = $hasil['nilai'];
+                $hasil = $this->hitungNilai($item);
 
-            return $item;
-        });
+                $item->skor = $hasil['skor'];
+                $item->nilai = $hasil['nilai'];
 
+                return $item;
+            })
+
+            // group berdasarkan user
+            ->groupBy('user_id')
+            ->map(function ($items) {
+
+                // urut berdasarkan nilai tertinggi
+                $sorted = $items->sortByDesc('nilai');
+
+                // ambil nilai terbaik
+                $best = $sorted->first();
+
+                // hitung percobaan ke berapa
+                $percobaanKe = $items
+                    ->sortBy('created_at')
+                    ->values()
+                    ->search(function ($item) use ($best) {
+                        return $item->id === $best->id;
+                    });
+
+                // simpan info tambahan
+                $best->percobaan_terbaik = $percobaanKe + 1;
+
+                // total percobaan
+                $best->total_percobaan = $items->count();
+
+                $best->percobaan_terbaik = $percobaanKe + 1;
+                $best->total_percobaan = $items->count();
+
+                $best->riwayat_percobaan = $items
+                    ->sortBy('created_at')
+                    ->values()
+                    ->map(function ($x, $index) {
+
+                        return [
+                            'percobaan' => $index + 1,
+                            'nilai' => $x->nilai,
+                            'status' => $x->nilai >= 75
+                                ? 'LULUS'
+                                : 'REMEDIAL'
+                        ];
+                    });
+
+                return $best;
+            })
+            // reset collection index
+            ->values();
         // FILTER
         if (request('status') == 'lulus') {
             $data = $data->where('nilai', '>=', 75);
@@ -148,13 +193,15 @@ class BuatUjianController extends Controller
         }
 
         if (request('kelas_id')) {
-            $data = $data->filter(fn($d) =>
+            $data = $data->filter(
+                fn($d) =>
                 optional($d->user->siswa)->kelas_id == request('kelas_id')
             );
         }
 
         if (request('jurusan_id')) {
-            $data = $data->filter(fn($d) =>
+            $data = $data->filter(
+                fn($d) =>
                 optional($d->user->siswa)->jurusan_id == request('jurusan_id')
             );
         }
@@ -206,8 +253,17 @@ class BuatUjianController extends Controller
                 $q->where('jurusan_id', request('jurusan_id'));
             });
         }
+        $data = $query->get()
+            ->map(function ($item) {
 
-        $data = $query->orderByDesc('nilai')->get();
+                $hasil = $this->hitungNilai($item);
+
+                $item->nilai = $hasil['nilai'];
+                $item->skor = $hasil['skor'];
+
+                return $item;
+            })
+            ->sortByDesc('nilai');
 
         $filename = "Laporan-" . str_replace(' ', '-', $ujian->judul) . "-" . date('Ymd-Hi') . ".csv";
 
@@ -217,7 +273,13 @@ class BuatUjianController extends Controller
             fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
             fputcsv($file, [
-                'No','NIS','Nama','Kelas','Jurusan','Nilai','Status'
+                'No',
+                'NIS',
+                'Nama',
+                'Kelas',
+                'Jurusan',
+                'Nilai',
+                'Status'
             ], ';');
 
             foreach ($data as $i => $item) {
@@ -233,7 +295,6 @@ class BuatUjianController extends Controller
             }
 
             fclose($file);
-
         }, 200, [
             "Content-Type" => "text/csv",
             "Content-Disposition" => "attachment; filename=\"$filename\"",

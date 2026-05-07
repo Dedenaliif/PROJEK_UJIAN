@@ -12,3 +12,16 @@
 <script src="{{ asset('sneat/assets/vendor/js/helpers.js') }}"></script>
 <script src="{{ asset('sneat/assets/js/config.js') }}"></script>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<style>
+    .swal2-container {
+        z-index: 99999 !important;
+    }
+
+    .modal {
+        z-index: 1055 !important;
+    }
+
+    .modal-backdrop {
+        z-index: 1050 !important;
+    }
+</style>

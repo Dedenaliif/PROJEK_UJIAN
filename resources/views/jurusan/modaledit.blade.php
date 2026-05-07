@@ -7,7 +7,7 @@
 
                 <div class="modal-header">
                     <h4 class="modal-title">Edit Jurusan</h4>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
                 </div>
 
                 <div class="modal-body">
@@ -18,7 +18,7 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-primary">Update</button>
                 </div>
 

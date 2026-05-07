@@ -79,9 +79,15 @@ class HalamanMonitoringController extends Controller
     public function getMonitoringData($ujian_id)
     {
         $siswas = Siswa::has('user')
-            ->with(['user.percobaanUjians' => function ($query) use ($ujian_id) {
-                $query->where('ujian_id', $ujian_id)->latest();
-            }, 'user.percobaanUjians.jawabans'])
+            ->with([
+                'kelas',
+                'jurusan',
+                'user.percobaanUjians' => function ($query) use ($ujian_id) {
+                    $query->where('ujian_id', $ujian_id)
+                        ->latest();
+                },
+                'user.percobaanUjians.jawabans'
+            ])
             ->get();
 
         $totalSoal = Pertanyaan::where('ujian_id', $ujian_id)->count();
@@ -89,21 +95,44 @@ class HalamanMonitoringController extends Controller
         $data = [];
 
         foreach ($siswas as $siswa) {
-            $percobaan = $siswa->user?->percobaanUjians?->first();
 
-            $jawaban = $percobaan ? $percobaan->jawabans->count() : 0;
-            $persen = $totalSoal > 0 ? ($jawaban / $totalSoal) * 100 : 0;
+            // ambil semua percobaan
+            $semuaPercobaan = $siswa->user?->percobaanUjians ?? collect();
+
+            // ambil percobaan terbaru
+            $percobaanTerakhir = $semuaPercobaan->first();
+
+            // hitung total percobaan
+            $jumlahPercobaan = $semuaPercobaan->count();
+
+            $jawaban = $percobaanTerakhir
+                ? $percobaanTerakhir->jawabans->count()
+                : 0;
+
+            $persen = $totalSoal > 0
+                ? ($jawaban / $totalSoal) * 100
+                : 0;
 
             $data[] = [
                 'nis' => $siswa->nis,
                 'nama' => $siswa->nama_siswa,
-                'kelas' => $siswa->kelas->nama_kelas,
-                'jurusan' => $siswa->jurusan->nama_jurusan,
+                'kelas' => $siswa->kelas->nama_kelas ?? '-',
+                'jurusan' => $siswa->jurusan->nama_jurusan ?? '-',
+
+                // tambahan baru
+                'percobaan' => $jumlahPercobaan,
+
                 'persen' => round($persen),
                 'jawaban' => $jawaban,
-                'status' => $percobaan->status ?? 'offline',
-                'mulai' => $percobaan ? $percobaan->waktu_mulai : null,
-                'percobaan_id' => $percobaan->id ?? null
+
+                // status dari percobaan terakhir
+                'status' => $percobaanTerakhir->status ?? 'offline',
+
+                'mulai' => $percobaanTerakhir
+                    ? $percobaanTerakhir->waktu_mulai
+                    : null,
+
+                'percobaan_id' => $percobaanTerakhir->id ?? null
             ];
         }
 
@@ -111,5 +140,4 @@ class HalamanMonitoringController extends Controller
             'data' => $data
         ]);
     }
-
 }

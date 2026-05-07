@@ -73,6 +73,7 @@
                             <th class="text-start">Nama</th>
                             <th>Kelas</th>
                             <th>Jurusan</th>
+                            <th>Percobaan</th>
                             <th width="220">Progress</th>
                             <th>Status</th>
                             <th>Mulai</th>
@@ -166,6 +167,7 @@ $(document).ready(function() {
             { data: 'nama' },
             { data: 'kelas' },
             { data: 'jurusan' },
+            { data:'percobaan' },
 
             // PROGRESS
             {

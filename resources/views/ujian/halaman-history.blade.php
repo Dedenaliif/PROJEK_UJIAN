@@ -1,136 +1,128 @@
 @extends('dashboard.index')
 
 @section('content')
+    <div class="container-xxl flex-grow-1 container-p-y">
 
-<div class="container-xxl flex-grow-1 container-p-y">
-
-    {{-- HEADER --}}
-    <div class="mb-4">
-        <h4 class="fw-bold mb-1">{{ $ujian->judul }}</h4>
-        <small class="text-muted">
-            {{ $siswa->nama_siswa ?? '-' }} • Maksimal {{ $ujian->max_percobaan }}x percobaan
-        </small>
-    </div>
-
-    {{-- CARD FULL WIDTH --}}
-    <div class="card shadow-sm border-0 rounded-4">
-
-        <div class="card-header bg-white border-0 py-3 px-4">
-            <h6 class="mb-0 fw-semibold">Riwayat Percobaan</h6>
+        {{-- HEADER --}}
+        <div class="mb-4">
+            <h4 class="fw-bold mb-1">{{ $ujian->judul }}</h4>
+            <small class="text-muted">
+                {{ $siswa->nama_siswa ?? '-' }} • Maksimal {{ $ujian->max_percobaan }}x percobaan
+            </small>
         </div>
 
-        <div class="card-body px-4 pb-4">
+        {{-- CARD FULL WIDTH --}}
+        <div class="card shadow-sm border-0 rounded-4">
 
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
+            <div class="card-header bg-white border-0 py-3 px-4">
+                <h6 class="mb-0 fw-semibold">Riwayat Percobaan</h6>
+            </div>
 
-                    <thead class="table-light text-center">
-                        <tr>
-                            <th>#</th>
-                            <th class="text-start">Waktu</th>
-                            <th>Durasi</th>
-                            <th>Nilai</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
+            <div class="card-body px-4 pb-4">
 
-                    <tbody>
-                    @forelse ($attempts as $item)
-                    <tr class="{{ $item->nilai_fix == $maxScore ? 'table-warning' : '' }}">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
 
-                        {{-- NO --}}
-                        <td class="text-center">
-                            <span class="badge bg-primary px-3 py-2">
-                                {{ $item->percobaan_ke }}
-                            </span>
-                        </td>
+                        <thead class="table-light text-center">
+                            <tr>
+                                <th>#</th>
+                                <th class="text-start">Waktu</th>
+                                <th>Durasi</th>
+                                <th>Nilai</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
 
-                        {{-- WAKTU --}}
-                        <td>
-                            <div class="fw-semibold">
-                                {{ \Carbon\Carbon::parse($item->waktu_mulai)->format('d M Y') }}
-                            </div>
-                            <small class="text-muted">
-                                {{ \Carbon\Carbon::parse($item->waktu_mulai)->format('H:i') }}
-                                -
-                                {{ $item->waktu_selesai
-                                    ? \Carbon\Carbon::parse($item->waktu_selesai)->format('H:i')
-                                    : '--:--' }}
-                            </small>
-                        </td>
+                        <tbody>
+                            @forelse ($attempts as $item)
+                                <tr class="{{ $item->nilai_fix == $maxScore ? 'table-warning' : '' }}">
 
-                        {{-- DURASI --}}
-                        <td class="text-center">
-                            <span class="badge bg-info px-3 py-2">
-                                {{ number_format($item->durasi, 2) }} menit
-                            </span>
-                        </td>
+                                    {{-- NO --}}
+                                    <td class="text-center">
+                                        <span class="badge bg-primary px-3 py-2">
+                                            {{ $item->percobaan_ke }}
+                                        </span>
+                                    </td>
 
-                        {{-- NILAI --}}
-                        <td class="text-center">
-                            <div class="fw-bold fs-4 text-success">
-                                {{ $item->nilai_fix }}
-                            </div>
+                                    {{-- WAKTU --}}
+                                    <td>
+                                        <div class="fw-semibold">
+                                            {{ \Carbon\Carbon::parse($item->waktu_mulai)->format('d M Y') }}
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ \Carbon\Carbon::parse($item->waktu_mulai)->format('H:i') }}
+                                            -
+                                            {{ $item->waktu_selesai ? \Carbon\Carbon::parse($item->waktu_selesai)->format('H:i') : '--:--' }}
+                                        </small>
+                                    </td>
 
-                            <div class="progress mt-1" style="height:6px;">
-                                <div class="progress-bar bg-success"
-                                    style="width: {{ $item->nilai_fix }}%">
-                                </div>
-                            </div>
+                                    {{-- DURASI --}}
+                                    <td class="text-center">
+                                        <span class="badge bg-info px-3 py-2">
+                                            {{ number_format($item->durasi, 2) }} menit
+                                        </span>
+                                    </td>
 
-                            @if ($item->nilai_fix == $maxScore && $attempts->count() > 1)
-                                <small class="badge bg-warning text-dark mt-1">
-                                    ⭐ Tertinggi
-                                </small>
-                            @endif
-                        </td>
+                                    {{-- NILAI --}}
+                                    <td class="text-center">
+                                        <div class="fw-bold fs-4 text-success">
+                                            {{ $item->nilai_fix }}
+                                        </div>
 
-                        {{-- STATUS --}}
-                        <td class="text-center">
-                            <span class="badge px-3 py-2
+                                        <div class="progress mt-1" style="height:6px;">
+                                            <div class="progress-bar bg-success" style="width: {{ $item->nilai_fix }}%">
+                                            </div>
+                                        </div>
+
+                                        @if ($item->nilai_fix == $maxScore && $attempts->count() > 1)
+                                            <small class="badge bg-warning text-dark mt-1">
+                                                ⭐ Tertinggi
+                                            </small>
+                                        @endif
+                                    </td>
+
+                                    {{-- STATUS --}}
+                                    <td class="text-center">
+                                        <span
+                                            class="badge px-3 py-2
                                 {{ $item->nilai_fix >= 75 ? 'bg-success' : 'bg-danger' }}">
-                                {{ $item->nilai_fix >= 75 ? 'LULUS' : 'REMEDIAL' }}
-                            </span>
-                        </td>
+                                            {{ $item->nilai_fix >= 75 ? 'LULUS' : 'REMEDIAL' }}
+                                        </span>
+                                    </td>
 
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
-                            Belum ada percobaan
-                        </td>
-                    </tr>
-                    @endforelse
-                    </tbody>
+                                </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
 
-                </table>
+                    </table>
+                </div>
+
             </div>
 
         </div>
 
     </div>
 
-</div>
+    <style>
+        .card {
+            border-radius: 16px;
+        }
 
-<style>
-.card {
-    border-radius: 16px;
-}
+        .table td,
+        .table th {
+            padding: 14px;
+            vertical-align: middle;
+        }
 
-.table td, .table th {
-    padding: 14px;
-    vertical-align: middle;
-}
+        .table tbody tr:hover {
+            background: #f4f8ff;
+            transform: scale(1.01);
+            transition: 0.2s;
+        }
 
-.table tbody tr:hover {
-    background: #f4f8ff;
-    transform: scale(1.01);
-    transition: 0.2s;
-}
-
-.badge {
-    border-radius: 8px;
-}
-</style>
-
+        .badge {
+            border-radius: 8px;
+        }
+    </style>
 @endsection
