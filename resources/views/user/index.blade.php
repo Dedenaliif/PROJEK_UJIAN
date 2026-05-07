@@ -40,15 +40,15 @@ Swal.fire({
         <form action="{{ route('siswa.import') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
-            <div class="row align-items-end g-3">
+            <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
 
-                <div class="col-md-6">
+                <div class="">
                     <label class="form-label fw-semibold">Upload CSV</label>
                     <input type="file" name="file" class="form-control" accept=".csv" required>
                     <small class="text-muted">Format: Nama, Jurusan</small>
                 </div>
 
-                <div class="col-md-3">
+                <div class="">
                     <button class="btn btn-primary w-100">
                         Generate User
                     </button>
