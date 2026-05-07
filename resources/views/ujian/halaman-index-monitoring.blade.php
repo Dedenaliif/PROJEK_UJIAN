@@ -16,7 +16,7 @@
         <div class="card-body p-4">
 
             <div class="table-responsive">
-                <table class="table align-middle table-hover">
+                <table class="table align-middle table-hover datatable">
 
                     <thead class="table-light">
                         <tr class="text-center">

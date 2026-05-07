@@ -1,28 +1,63 @@
-<div class="modal fade" id="modal-edit">
-    <div class="modal-dialog">
-        <form id="form-edit" method="POST">
+<div class="modal fade" id="modal-edit" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+
+        <form id="form-edit" method="POST" class="w-100">
             @csrf
             @method('PUT')
-            <div class="modal-content">
 
-                <div class="modal-header">
-                    <h4 class="modal-title">Edit Jurusan</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+            <div class="modal-content border-0 shadow-lg">
+
+                <div class="modal-header border-0 pb-0">
+
+                    <h5 class="modal-title fw-bold">
+                        Edit Jurusan
+                    </h5>
+
+                    <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                    </button>
+
                 </div>
 
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label>Nama Jurusan</label>
-                        <input type="text" name="nama_jurusan" id="edit-nama_jurusan" class="form-control" required>
+                <div class="modal-body pt-2">
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-semibold">
+                            Nama Jurusan
+                        </label>
+
+                        <input type="text"
+                            name="nama_jurusan"
+                            id="edit-nama_jurusan"
+                            class="form-control"
+                            required>
+
                     </div>
+
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Update</button>
+                <div class="modal-footer border-0">
+
+                    <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+
+                        Batal
+                    </button>
+
+                    <button type="submit"
+                        class="btn btn-primary">
+
+                        Update
+                    </button>
+
                 </div>
 
             </div>
+
         </form>
+
     </div>
 </div>

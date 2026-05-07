@@ -224,50 +224,60 @@ class HalamanUjianController extends Controller
         return redirect()->route('ujian.hasil', $ujianId);
     }
 
-public function hasil($ujianId)
-{
-    $percobaan = PercobaanUjian::where('user_id', Auth::id())
-        ->where('ujian_id', $ujianId)
-        ->latest()
-        ->first();
+    public function hasil($ujianId)
+    {
+        $percobaan = PercobaanUjian::where('user_id', Auth::id())
+            ->where('ujian_id', $ujianId)
+            ->latest()
+            ->first();
 
-    if (!$percobaan) {
-        return redirect()->route('siswa.ujian')
-            ->with('error', 'Belum ada hasil ujian');
+        if (!$percobaan) {
+            return redirect()->route('siswa.ujian')
+                ->with('error', 'Belum ada hasil ujian');
+        }
+
+        $siswa = Siswa::where('user_id', Auth::id())->first();
+
+        $jawaban = Jawaban::where('percobaan_ujian_id', $percobaan->id)->get();
+
+        $totalSoal = Pertanyaan::where('ujian_id', $ujianId)->count();
+
+        // JUMLAH JAWABAN
+        $jumlahJawaban = $jawaban->count();
+
+        // BENAR
+        $jawabanBenar = $jawaban->where('benar', 1)->count();
+
+        // SALAH
+        $jawabanSalah = $jumlahJawaban - $jawabanBenar;
+
+        // NILAI
+        $nilai = $totalSoal > 0
+            ? round(($jawabanBenar / $totalSoal) * 100)
+            : 0;
+
+        // STATUS
+        $lulus = $nilai >= 75;
+
+        // PERCOBAAN
+        $jumlahPercobaan = PercobaanUjian::where('user_id', Auth::id())
+            ->where('ujian_id', $ujianId)
+            ->count();
+
+        $ujian = Ujian::findOrFail($ujianId);
+
+        $sisaPercobaan = $ujian->max_percobaan - $jumlahPercobaan;
+
+        return view('ujian.hasil', compact(
+            'siswa',
+            'totalSoal',
+            'jumlahJawaban',
+            'jawabanBenar',
+            'jawabanSalah',
+            'nilai',
+            'lulus',
+            'sisaPercobaan'
+        ));
     }
-
-    $siswa = Siswa::where('user_id', Auth::id())->first();
-
-    $jawaban = Jawaban::where('percobaan_ujian_id', $percobaan->id)->get();
-
-    $totalSoal = Pertanyaan::where('ujian_id', $ujianId)->count();
-
-    $jumlahJawaban = $jawaban->count(); // 🔥 FIX
-
-    $jawabanBenar = $jawaban->where('benar', 1)->count();
-
-    $nilai = $totalSoal > 0
-        ? round(($jawabanBenar / $totalSoal) * 100)
-        : 0;
-
-    $lulus = $nilai >= 75;
-
-    $jumlahPercobaan = PercobaanUjian::where('user_id', Auth::id())
-        ->where('ujian_id', $ujianId)
-        ->count();
-
-    $ujian = Ujian::findOrFail($ujianId);
-    $sisaPercobaan = $ujian->max_percobaan - $jumlahPercobaan;
-
-    return view('ujian.hasil', compact(
-        'siswa',
-        'totalSoal',
-        'jumlahJawaban', // 🔥 FIX
-        'jawabanBenar',
-        'nilai',
-        'lulus',
-        'sisaPercobaan'
-    ));
-}
 
 }

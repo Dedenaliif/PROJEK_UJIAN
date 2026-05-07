@@ -65,7 +65,7 @@
         <div class="card-body p-4">
 
             <div class="table-responsive">
-                <table id="monitoringTable" class="table table-hover align-middle w-100">
+                <table id="monitoringTable" class="table table-hover align-middle w-100 datatable">
 
                     <thead class="table-light text-center">
                         <tr>

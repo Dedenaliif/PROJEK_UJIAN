@@ -1,60 +1,69 @@
 @extends('dashboard.index')
 
 @section('content')
-    <section class="content-header">
-        <div class="container-fluid px-2">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1>Data Siswa</h1>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Content -->
-    <section class="content">
-        <div class="container-fluid">
-            <div class="card">
+<div class="container-xxl flex-grow-1 container-p-y">
 
-                <!-- Card Header -->
-                <div class="card-header">
-                    <h3 class="card-title">Daftar Siswa</h3>
-                </div>
-
-                <!-- Card Body -->
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table id="table-kelas" class="table table-bordered table-striped">
-                            <thead class="text-center">
-                                <tr>
-                                    <th>No</th>
-                                    <th>Nama Siswa</th>
-                                    <th>NISN</th>
-                                    <th>Kelas</th>
-                                    <th>Jurusan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($siswas as $s)
-                                    <tr>
-                                        <td class="text-center">{{ $loop->iteration }}</td>
-                                        <td class="text-center">{{ $s->nama_siswa }}</td>
-                                        <td class="text-center">{{ $s->nis }}</td>
-                                        <td class="text-center">{{ $s->kelas->nama_kelas }}</td>
-                                        <td class="text-center">{{ $s->jurusan->nama_jurusan }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="text-center">Data kosong</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </section>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0">Data Siswa</h4>
     </div>
+
+    <div class="card">
+
+        <div class="card-header">
+            <h6 class="mb-0">Daftar Siswa</h6>
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+                <table id="table-kelas" class="table table-hover text-center align-middle datatable">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">No</th>
+                            <th class="text-center">Nama Siswa</th>
+                            <th class="text-center">NISN</th>
+                            <th class="text-center">Kelas</th>
+                            <th class="text-center">Jurusan</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @forelse ($siswas as $s)
+                            <tr>
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $s->nama_siswa }}</td>
+                                <td>{{ $s->nis }}</td>
+
+                                <td>
+                                    <span class="badge bg-primary">
+                                        {{ $s->kelas->nama_kelas }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="badge bg-success">
+                                        {{ $s->jurusan->nama_jurusan }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-muted">
+                                    Data kosong
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
 @endsection

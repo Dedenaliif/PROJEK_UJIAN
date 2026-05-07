@@ -30,31 +30,34 @@
     });
 
     $(document).ready(function() {
-        $('.table:not(.no-dataTable)').each(function() {
 
-            // skip kalau sudah datatable
-            if (!$.fn.DataTable.isDataTable(this)) {
+       $('.datatable').each(function () {
 
-                $(this).DataTable({
-                    responsive: true,
-                    autoWidth: false,
-                    pageLength: 10,
-                    language: {
-                        search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_ data",
-                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-                        paginate: {
-                            previous: "←",
-                            next: "→"
-                        },
-                        zeroRecords: "Data tidak ditemukan"
-                    }
-                });
+        if (!$.fn.DataTable.isDataTable(this)) {
 
-            }
+            $(this).DataTable({
+                responsive: true,
+                autoWidth: false,
+                scrollX: true,
+                pageLength: 10,
 
-        });
+                language: {
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    paginate: {
+                        previous: "←",
+                        next: "→"
+                    },
+                    zeroRecords: "Data tidak ditemukan"
+                }
+            });
+
+        }
+
     });
+
+});
 </script>
 
 @if (session('success'))

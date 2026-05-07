@@ -34,7 +34,7 @@
 
             <div class="table-responsive">
 
-                <table class="table align-middle">
+                <table class="table align-middle datatable">
 
                     <thead class="table-light text-center">
                         <tr>

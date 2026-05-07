@@ -1,27 +1,62 @@
-<div class="modal fade" id="modal-tambah-kelas">
-    <div class="modal-dialog">
-        <form action="{{ route('kelas.store') }}" method="POST">
+<div class="modal fade" id="modal-tambah-kelas" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+
+        <form action="{{ route('kelas.store') }}" method="POST" class="w-100">
             @csrf
-            <div class="modal-content">
 
-                <div class="modal-header">
-                    <h4 class="modal-title">Tambah Kelas</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+            <div class="modal-content border-0 shadow-lg">
+
+                <div class="modal-header border-0 pb-0">
+
+                    <h5 class="modal-title fw-bold">
+                        Tambah Kelas
+                    </h5>
+
+                    <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                    </button>
+
                 </div>
 
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label>Nama Kelas</label>
-                        <input type="text" name="nama_kelas" class="form-control" required>
+                <div class="modal-body pt-2">
+
+                    <div class="mb-3">
+
+                        <label class="form-label fw-semibold">
+                            Nama Kelas
+                        </label>
+
+                        <input type="text"
+                            name="nama_kelas"
+                            class="form-control"
+                            placeholder="Masukkan nama kelas"
+                            required>
+
                     </div>
+
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+                <div class="modal-footer border-0">
+
+                    <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+
+                        Batal
+                    </button>
+
+                    <button type="submit"
+                        class="btn btn-primary">
+
+                        Simpan
+                    </button>
+
                 </div>
 
             </div>
+
         </form>
+
     </div>
 </div>

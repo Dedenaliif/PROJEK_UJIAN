@@ -15,6 +15,14 @@ Swal.fire({
 </script>
 @endif
 
+<style>
+.modal {
+    z-index: 99999 !important;
+}
+.modal-backdrop {
+    z-index: 99998 !important;
+}
+</style>
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="fw-bold mb-0">Manajemen User</h4>
 
@@ -27,7 +35,7 @@ Swal.fire({
         <button class="btn btn-primary"
             data-bs-toggle="modal"
             data-bs-target="#modal-tambah-user">
-            <i class="bx bx-plus"></i> Tambah
+            <i class="bx bx-plus"></i>
         </button>
 
     </div>
@@ -70,14 +78,14 @@ Swal.fire({
     <div class="card-body">
 
         <div class="table-responsive">
-            <table class="table table-hover text-center">
+            <table class="table table-hover text-center datatable">
 
                 <thead class="table-light">
                     <tr>
-                        <th>No</th>
-                        <th>Username</th>
-                        <th>Role</th>
-                        <th>Aksi</th>
+                        <th class="text-center">No</th>
+                        <th class="text-center">Username</th>
+                        <th class="text-center">Role</th>
+                        <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
 
@@ -104,18 +112,21 @@ Swal.fire({
 
                             <td>
 
-                                <button class="btn btn-warning btn-sm btn-edit_user"
+                                <button class="btn btn-warning btn-sm btn-edit_user m-2"
                                     data-id="{{ $u->id }}"
                                     data-username="{{ $u->username }}"
                                     data-role="{{ $u->role }}"
                                     data-bs-toggle="modal"
-                                    data-bs-target="#modal-edit">
-                                    Edit
+                                    data-bs-target="#modal-edit"
+                                    title="Edit">
+                                    <i class="bx bx-edit"></i>
                                 </button>
 
-                                <button class="btn btn-danger btn-sm"
-                                    onclick="confirmDelete({{ $u->id }})">
-                                    Hapus
+                                <button class="btn btn-danger btn-sm btn-icon m-2"
+                                    onclick="confirmDelete({{ $u->id }})"
+                                    title="Hapus">
+
+                                    <i class="bx bx-trash"></i>
                                 </button>
 
                                 <form id="delete-form-{{ $u->id }}"
