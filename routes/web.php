@@ -22,12 +22,16 @@ use App\Http\Controllers\{
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', [LoginController::class, 'index'])->name('login');
-Route::post('/login', [LoginController::class, 'authenticate'])->name('login.authenticate');
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-
+Route::middleware('guest')->group(function () {
+    Route::get('/', function () {
+        return redirect()->route('login');
+    });
+    Route::get('/login', [LoginController::class, 'index'])->name('login');
+    Route::post('/login', [LoginController::class, 'authenticate'])->name('login.authenticate');
+});
 
 Route::middleware('auth')->group(function () {
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     /*
     |--------------------------------------------------------------------------
