@@ -24,20 +24,27 @@ class DataDiriController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nama_siswa' => 'required',
-            'nis' => 'required',
-            'kelas' => 'required',
-            'jurusan' => 'required',
-        ]);
+        $siswa = Siswa::where('user_id', Auth::id())->first();
+        $request->validate(
+            [
+
+                'nama_siswa' => 'required',
+                'nis' => 'required|unique:siswas,nis,' . Auth::id() . ',user_id',
+                'kelas' => $siswa ? 'nullable' : ' required',
+                'jurusan' => $siswa? 'nullable': 'required',
+            ],
+            [
+                'nis.unique' => 'NIS sudah digunakan oleh siswa lain.',
+            ]
+        );
 
         Siswa::updateOrCreate(
             ['user_id' => Auth::id()],
             [
                 'nama_siswa' => $request->nama_siswa,
                 'nis' => $request->nis,
-                'kelas_id' => $request->kelas,
-                'jurusan_id' => $request->jurusan,
+                'kelas_id' =>$siswa ? $siswa->kelas_id : $request->kelas,
+                'jurusan_id' => $siswa ? $siswa->jurusan_id : $request->jurusan,
             ]
         );
 

@@ -283,7 +283,7 @@
                                             </td>
 
                                             <td class="text-start fw-semibold">
-                                                {{ $item->user->username }}
+                                                {{ $item->user->siswa->nama_siswa ?? '-' }}
                                             </td>
 
                                             <td class="text-center">

@@ -2,158 +2,156 @@
 
 @section('content')
 
-<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="container-xxl flex-grow-1 container-p-y">
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
 
-            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card border-0 shadow-sm rounded-4">
 
-                {{-- HEADER --}}
-                <div class="card-header bg-white border-0 text-center pt-4 pb-2">
-                    <h4 class="fw-bold mb-1">Form Data Diri</h4>
+                    {{-- HEADER --}}
+                    <div class="card-header bg-white border-0 text-center pt-4 pb-2">
+                        <h4 class="fw-bold mb-1">Form Data Diri</h4>
 
-                    @if($siswa)
-                        <small class="text-success">Edit Data</small>
-                    @else
-                        <small class="text-muted">Lengkapi data diri</small>
-                    @endif
-                </div>
+                        @if ($siswa)
+                            <small class="text-success">Edit Data</small>
+                        @else
+                            <small class="text-muted">Lengkapi data diri</small>
+                        @endif
+                    </div>
 
-                {{-- BODY --}}
-                <div class="card-body px-4 pb-4">
+                    {{-- BODY --}}
+                    <div class="card-body px-4 pb-4">
 
-                    {{-- ERROR --}}
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <strong>Terjadi kesalahan:</strong>
-                            <ul class="mb-0 mt-2">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    {{-- SUCCESS --}}
-                    @if (session('success'))
-                        <div class="alert alert-success">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-
-                    <form action="{{ route('datadiri.store') }}" method="POST">
-                        @csrf
-
-                        <div class="row g-3">
-
-                            {{-- NAMA --}}
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Nama Lengkap</label>
-                                <input type="text"
-                                    name="nama_siswa"
-                                    class="form-control @error('nama_siswa') is-invalid @enderror"
-                                    value="{{ old('nama_siswa', $siswa->nama_siswa ?? '') }}"
-                                    placeholder="Masukkan Nama Lengkap">
-
-                                @error('nama_siswa')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            {{-- NIS --}}
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">NIS</label>
-                                <input type="text"
-                                    name="nis"
-                                    class="form-control @error('nis') is-invalid @enderror"
-                                    value="{{ old('nis', $siswa->nis ?? '') }}"
-                                    placeholder="Masukkan NIS">
-
-                                @error('nis')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            {{-- KELAS --}}
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Kelas</label>
-                                <select name="kelas"
-                                    class="form-select @error('kelas') is-invalid @enderror">
-
-                                    <option value="">-- Pilih Kelas --</option>
-
-                                    @foreach ($kelas as $item)
-                                        <option value="{{ $item->id }}"
-                                            {{ old('kelas', $siswa->kelas_id ?? '') == $item->id ? 'selected' : '' }}>
-                                            {{ $item->nama_kelas }}
-                                        </option>
+                        {{-- ERROR --}}
+                        @if ($errors->any())
+                            <div class="alert alert-danger">
+                                <strong>Terjadi kesalahan:</strong>
+                                <ul class="mb-0 mt-2">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
                                     @endforeach
+                                </ul>
+                            </div>
+                        @endif
 
-                                </select>
+                        {{-- SUCCESS --}}
+                        @if (session('success'))
+                            <div class="alert alert-success">
+                                {{ session('success') }}
+                            </div>
+                        @endif
 
-                                @error('kelas')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                        <form action="{{ route('datadiri.store') }}" method="POST">
+                            @csrf
+
+                            <div class="row g-3">
+
+                                {{-- NAMA --}}
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Nama Lengkap</label>
+                                    <input type="text" name="nama_siswa"
+                                        class="form-control @error('nama_siswa') is-invalid @enderror"
+                                        value="{{ old('nama_siswa', $siswa->nama_siswa ?? '') }}"
+                                        placeholder="Masukkan Nama Lengkap">
+
+                                    @error('nama_siswa')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                {{-- NIS --}}
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">NIS</label>
+                                    <input type="text" name="nis"
+                                        class="form-control @error('nis') is-invalid @enderror"
+                                        value="{{ old('nis', $siswa->nis ?? '') }}" placeholder="Masukkan NIS">
+
+                                    @error('nis')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                {{-- KELAS --}}
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Kelas</label>
+                                    <select name="kelas"
+                                        class="form-select @error('kelas') is-invalid @enderror
+                                    "@if ($siswa && $siswa->kelas_id) disabled @endif>
+
+                                        <option value="">-- Pilih Kelas --</option>
+
+                                        @foreach ($kelas as $item)
+                                            <option value="{{ $item->id }}"
+                                                {{ old('kelas', $siswa->kelas_id ?? '') == $item->id ? 'selected' : '' }}>
+                                                {{ $item->nama_kelas }}
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+
+                                    @error('kelas')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                {{-- JURUSAN --}}
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Jurusan</label>
+                                    <select name="jurusan" class="form-select @error('jurusan') is-invalid @enderror"
+                                        @if ($siswa && $siswa->jurusan_id) disabled @endif>
+
+                                        <option value="">-- Pilih Jurusan --</option>
+
+                                        @foreach ($jurusan as $item)
+                                            <option value="{{ $item->id }}"
+                                                {{ old('jurusan', $siswa->jurusan_id ?? '') == $item->id ? 'selected' : '' }}>
+                                                {{ $item->nama_jurusan }}
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+
+                                    @error('jurusan')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
                             </div>
 
-                            {{-- JURUSAN --}}
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Jurusan</label>
-                                <select name="jurusan"
-                                    class="form-select @error('jurusan') is-invalid @enderror">
-
-                                    <option value="">-- Pilih Jurusan --</option>
-
-                                    @foreach ($jurusan as $item)
-                                        <option value="{{ $item->id }}"
-                                            {{ old('jurusan', $siswa->jurusan_id ?? '') == $item->id ? 'selected' : '' }}>
-                                            {{ $item->nama_jurusan }}
-                                        </option>
-                                    @endforeach
-
-                                </select>
-
-                                @error('jurusan')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                            {{-- BUTTON --}}
+                            <div class="d-flex justify-content-end mt-4">
+                                <button class="btn btn-primary px-4">
+                                    {{ $siswa ? 'Update Data' : 'Simpan Data' }}
+                                </button>
                             </div>
 
-                        </div>
+                        </form>
 
-                        {{-- BUTTON --}}
-                        <div class="d-flex justify-content-end mt-4">
-                            <button class="btn btn-primary px-4">
-                                {{ $siswa ? 'Update Data' : 'Simpan Data' }}
-                            </button>
-                        </div>
-
-                    </form>
+                    </div>
 
                 </div>
 
             </div>
-
         </div>
+
     </div>
 
-</div>
+    {{-- STYLE TAMBAHAN --}}
+    <style>
+        .card {
+            transition: 0.25s;
+        }
 
-{{-- STYLE TAMBAHAN --}}
-<style>
-.card {
-    transition: 0.25s;
-}
+        .card:hover {
+            transform: translateY(-2px);
+        }
 
-.card:hover {
-    transform: translateY(-2px);
-}
-
-/* biar gak mepet */
-.container-xxl {
-    padding-left: 24px !important;
-    padding-right: 24px !important;
-}
-</style>
+        /* biar gak mepet */
+        .container-xxl {
+            padding-left: 24px !important;
+            padding-right: 24px !important;
+        }
+    </style>
 
 @endsection

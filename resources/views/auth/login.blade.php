@@ -139,6 +139,15 @@
                 </div>
             </div>
 
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <div class="mb-0">
+                        @foreach ($errors->all() as $message)
+                            <div>{{ $message }}</div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
             <form action="{{ route('login.authenticate') }}" method="post">
                 @csrf
 
