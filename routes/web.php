@@ -15,20 +15,41 @@ use App\Http\Controllers\{
     KelasController,
     JurusanController
 };
-
+use Illuminate\Support\Facades\Auth;
 /*
 |--------------------------------------------------------------------------
 | AUTH
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('guest')->group(function () {
-    Route::get('/', function () {
-        return redirect()->route('login');
-    });
-    Route::get('/login', [LoginController::class, 'index'])->name('login');
-    Route::post('/login', [LoginController::class, 'authenticate'])->name('login.authenticate');
-});
+Route::get('/login', function () {
+
+    if (Auth::check()) {
+
+        $user = Auth::user();
+
+        switch ($user->role) {
+
+            case 'admin':
+                return redirect('/admin/dashboard');
+
+            case 'penguji':
+                return redirect('/penguji/ujian');
+
+            case 'pengawas':
+                return redirect('/pengawas/monitoring');
+
+            case 'siswa':
+                return redirect('/siswa/datadiri');
+        }
+    }
+
+    return app(LoginController::class)->index();
+
+})->name('login');
+
+Route::post('/login', [LoginController::class, 'authenticate'])
+    ->name('login.authenticate');
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
