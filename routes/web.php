@@ -22,7 +22,15 @@ use Illuminate\Support\Facades\Auth;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/login', function () {
+
+
+Route::get('/', function () {
+    return redirect('/login');
+});
+Route::post('/login', [LoginController::class, 'authenticate'])
+    ->name('login.authenticate');
+
+Route::fallback(function () {
 
     if (Auth::check()) {
 
@@ -45,12 +53,7 @@ Route::get('/login', function () {
     }
 
     return app(LoginController::class)->index();
-
 })->name('login');
-
-Route::post('/login', [LoginController::class, 'authenticate'])
-    ->name('login.authenticate');
-
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 

@@ -49,11 +49,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="5" class="text-muted">
-                                    Data kosong
-                                </td>
-                            </tr>
+                           
                         @endforelse
                     </tbody>
 

@@ -66,7 +66,7 @@ class UserController extends Controller
         $handle = fopen($file->getRealPath(), 'r');
 
         // 3. Lewati baris pertama (header: nama, jurusan)
-        fgetcsv($handle);
+        fgetcsv($handle, 1000, ";");
 
         $successCount = 0;
 
@@ -74,26 +74,35 @@ class UserController extends Controller
         while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
 
             // Proteksi: Pastikan baris ini memiliki minimal 2 kolom agar tidak error Undefined Key 1
-            if (count($data) < 2) continue;
+            if (count($data) < 3) continue;
 
-            $namaLengkap = $data[0];
-            $jurusan = $data[1];
+            $namaLengkap = trim($data[0]);
+            $nis = trim($data[1]);
+            $jurusan = trim($data[2]);
 
-            if (empty($namaLengkap) || empty($jurusan)) continue;
+            if (empty($namaLengkap) || empty($nis) || empty($jurusan)) continue;
+            // 5. 🔥 LOGIKA SINGKATAN JURUSAN (Ambil huruf kapital awal)
+            // Mencari semua huruf besar (A-Z) di dalam string kalimat jurusan
+            preg_match_all('/[A-Z]/', $jurusan, $matches);
+            // Menggabungkan huruf-huruf besar tersebut menjadi satu kata (Misal: R, P, L menjadi RPL)
+            $jurusanSingkat = implode('', $matches[0]);
 
+            // Jika karena alasan tertentu tidak ada huruf kapital, gunakan 3 huruf pertama sebagai cadangan
+            if (empty($jurusanSingkat)) {
+                $jurusanSingkat = substr(str_replace(' ', '', $jurusan), 0, 3);
+            }
             // 5. Pecah nama lengkap berdasarkan spasi untuk mengambil nama depan
             $pecahNama = explode(' ', trim($namaLengkap));
             $namaDepan = $pecahNama[0];
 
             // 6. Gabungkan Nama Depan + Jurusan dengan pemisah titik (.)
             // Str::slug akan otomatis mengubah huruf besar jadi kecil dan spasi jadi tanda strip (-)
-            $username = Str::slug($namaDepan . '-' . $jurusan, '.');
+            $username = Str::slug($nis . '.' . $namaDepan . '-' . $jurusanSingkat, '.');
 
             // 7. Simpan ke Database
             User::updateOrCreate(
                 ['username' => $username], // Cek unik berdasarkan kombinasi username baru
                 [
-                    'name'     => $namaLengkap, // Di database tetap tersimpan nama lengkap asli
                     'password' => Hash::make($username), // Password default sama dengan username
                     'role'     => 'siswa', // Otomatis set sebagai siswa (bukan admin)
                     // 'jurusan'  => $jurusan, // Aktifkan jika tabel users Anda punya kolom jurusan
@@ -122,12 +131,11 @@ class UserController extends Controller
             $file = fopen('php://output', 'w');
 
             // 🔥 HEADER
-            fputcsv($file, ['nama', 'jurusan'], ';');
+            fputcsv($file, ['nama', 'nis', 'jurusan'], ';');
 
             fclose($file);
         };
 
         return response()->stream($callback, 200, $headers);
     }
-
 }
