@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
     return redirect('/login');
-});
+})->name('login');
 Route::post('/login', [LoginController::class, 'authenticate'])
     ->name('login.authenticate');
 
