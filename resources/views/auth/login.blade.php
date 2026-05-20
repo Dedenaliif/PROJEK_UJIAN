@@ -23,6 +23,9 @@
             justify-content: center;
             margin: 0;
             padding: 20px;
+            background-image: url('{{ asset('img/bg.jpg') }}');
+            background-size: cover;
+            background-position: center;
         }
 
         /* Container Utama */

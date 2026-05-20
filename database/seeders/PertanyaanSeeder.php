@@ -266,45 +266,246 @@ class PertanyaanSeeder extends Seeder
 
                 $soals = [
                     [
-                        'text' => 'Rumus untuk menjumlahkan di Excel adalah?',
-                        'a' => '=SUM()',
-                        'b' => '=ADD()',
-                        'c' => '=TOTAL()',
-                        'd' => '=PLUS()',
+                        'text' => 'Alamat sel B3 berarti ...',
+                        'a' => 'Kolom B baris 3',
+                        'b' => 'Kolom 3 baris B',
+                        'c' => 'Sheet B halaman 3',
+                        'd' => 'Baris B kolom 3',
                         'jawaban' => 'A'
                     ],
                     [
-                        'text' => 'Rumus untuk rata-rata di Excel?',
-                        'a' => '=SUM()',
-                        'b' => '=AVERAGE()',
-                        'c' => '=COUNT()',
-                        'd' => '=MAX()',
-                        'jawaban' => 'B'
-                    ],
-                    [
-                        'text' => 'Untuk menghitung jumlah data digunakan?',
-                        'a' => '=COUNT()',
-                        'b' => '=SUM()',
-                        'c' => '=IF()',
-                        'd' => '=VLOOKUP()',
-                        'jawaban' => 'A'
-                    ],
-                    [
-                        'text' => 'Fungsi IF digunakan untuk?',
-                        'a' => 'Penjumlahan',
-                        'b' => 'Logika kondisi',
-                        'c' => 'Rata-rata',
-                        'd' => 'Mengurutkan',
-                        'jawaban' => 'B'
-                    ],
-                    [
-                        'text' => 'Ekstensi file Excel adalah?',
-                        'a' => '.docx',
-                        'b' => '.ppt',
-                        'c' => '.xlsx',
-                        'd' => '.txt',
+                        'text' => 'Setiap rumus di Microsoft Excel harus diawali dengan tanda ...',
+                        'a' => '#',
+                        'b' => '@',
+                        'c' => '=',
+                        'd' => '$',
                         'jawaban' => 'C'
                     ],
+                    [
+                        'text' => 'Fungsi SUM digunakan untuk ...',
+                        'a' => 'Menghitung rata-rata',
+                        'b' => 'Menjumlahkan data angka',
+                        'c' => 'Mencari nilai terbesar',
+                        'd' => 'Menghitung jumlah teks',
+                        'jawaban' => 'B'
+                    ],
+                    [
+                        'text' => 'Fitur AutoFill berguna untuk ...',
+                        'a' => 'Menghapus isi sel',
+                        'b' => 'Mengunci worksheet',
+                        'c' => 'Mencetak grafik',
+                        'd' => 'Menyalin pola data atau rumus secara otomatis',
+                        'jawaban' => 'D'
+                    ],
+                    [
+                        'text' => 'Untuk menampilkan angka sebagai mata uang, pengaturan yang digunakan adalah ...',
+                        'a' => 'Number Format Currency/Accounting',
+                        'b' => 'Merge Cells',
+                        'c' => 'Page Layout',
+                        'd' => 'Text Direction',
+                        'jawaban' => 'A'
+                    ],
+                    [
+                        'text' => 'Agar baris judul tetap terlihat saat menggulir data ke bawah, fitur yang digunakan adalah ...',
+                        'a' => 'Wrap Text',
+                        'b' => 'Merge and Center',
+                        'c' => 'Freeze Panes',
+                        'd' => 'Goal Seek',
+                        'jawaban' => 'C'
+                    ],
+                    [
+                        'text' => 'Perintah Sort Ascending digunakan untuk ...',
+                        'a' => 'Menghapus data ganda',
+                        'b' => 'Mengurutkan data dari kecil ke besar atau A ke Z',
+                        'c' => 'Menyembunyikan seluruh kolom',
+                        'd' => 'Mengubah data menjadi grafik',
+                        'jawaban' => 'B'
+                    ],
+                    [
+                        'text' => 'Fitur Filter digunakan untuk ...',
+                        'a' => 'Menampilkan data tertentu sesuai kriteria',
+                        'b' => 'Menghapus seluruh worksheet',
+                        'c' => 'Mengubah rumus menjadi teks',
+                        'd' => 'Menyisipkan komentar otomatis',
+                        'jawaban' => 'A'
+                    ],
+                    [
+                        'text' => 'Chart pada Excel berfungsi untuk ...',
+                        'a' => 'Mengunci sel',
+                        'b' => 'Membuat surat otomatis',
+                        'c' => 'Menyajikan data dalam bentuk visual',
+                        'd' => 'Mengubah file menjadi PDF',
+                        'jawaban' => 'C'
+                    ],
+                    [
+                        'text' => 'Cara cepat mengganti nama worksheet adalah ...',
+                        'a' => 'Menekan Ctrl+P',
+                        'b' => 'Menghapus semua sel',
+                        'c' => 'Membuka menu Mailings',
+                        'd' => 'Klik dua kali pada tab sheet lalu mengetik nama baru',
+                        'jawaban' => 'D'
+                    ],
+                    [
+                        'text' => 'Referensi sel $A$1 pada rumus Excel disebut referensi ...',
+                        'a' => 'Relatif',
+                        'b' => 'Absolut',
+                        'c' => 'Campuran tanpa fungsi',
+                        'd' => 'Teks biasa',
+                        'jawaban' => 'B'
+                    ],
+                    [
+                        'text' => 'Fungsi yang tepat untuk menghitung jumlah data berdasarkan satu kriteria adalah ...',
+                        'a' => 'COUNTIF',
+                        'b' => 'SUM',
+                        'c' => 'MAX',
+                        'd' => 'LEFT',
+                        'jawaban' => 'A'
+                    ],
+                    [
+                        'text' => '] Untuk mencari harga barang berdasarkan kode produk dari tabel referensi, fungsi yang umum digunakan adalah ...',
+                        'a' => 'AVERAGE',
+                        'b' => 'NOW',
+                        'c' => 'VLOOKUP atau XLOOKUP',
+                        'd' => 'LEN',
+                        'jawaban' => 'C'
+                    ],
+                    [
+                        'text' => 'Rumus yang tepat untuk menampilkan "Lulus" jika nilai di A2 minimal 70, selain itu "Tidak Lulus", adalah ...',
+                        'a' => '=SUM(A2>=70,"Lulus","Tidak Lulus")',
+                        'b' => '=COUNTIF(A2,"Lulus")',
+                        'c' => '=AVERAGE(A2,"Lulus")',
+                        'd' => '=IF(A2>=70,"Lulus","Tidak Lulus")',
+                        'jawaban' => 'D'
+                    ],
+                    [
+                        'text' => 'Untuk memberi warna otomatis pada nilai yang berada di bawah KKM, fitur yang tepat adalah ....',
+                        'a' => 'Freeze Panes',
+                        'b' => 'Conditional Formatting',
+                        'c' => 'Remove Duplicates',
+                        'd' => 'Text to Columns',
+                        'jawaban' => 'B'
+                    ],
+                    [
+                        'text' => 'Jika terdapat data siswa yang sama tercatat dua kali, fitur yang tepat untuk membersihkannya adalah ...',
+                        'a' => 'Goal Seek',
+                        'b' => 'Page Break Preview',
+                        'c' => 'Remove Duplicates',
+                        'd' => 'Format Painter',
+                        'jawaban' => 'C'
+                    ],
+                    [
+                        'text' => 'Untuk merangkum penjualan berdasarkan kategori produk dan wilayah secara cepat, fitur yang paling tepat adalah ...',
+                        'a' => 'PivotTable',
+                        'b' => 'WordArt',
+                        'c' => 'Page Border',
+                        'd' => 'Screenshot',
+                        'jawaban' => 'A'
+                    ],
+                    [
+                        'text' => 'Agar rumus tidak sengaja diubah oleh pengguna lain, worksheet dapat diamankan melalui fitur ...',
+                        'a' => 'Insert Symbol',
+                        'b' => 'Protect Sheet',
+                        'c' => 'Sort Descending',
+                        'd' => 'Name Manager saja',
+                        'jawaban' => 'B'
+                    ],
+                    [
+                        'text' => 'Data nama lengkap dalam satu kolom ingin dipisah menjadi nama depan dan nama belakang. Fitur yang sesuai adalah ...',
+                        'a' => 'Merge and Center',
+                        'b' => 'Freeze Panes',
+                        'c' => 'AutoSum',
+                        'd' => 'Text to Columns',
+                        'jawaban' => 'D'
+                    ],
+                    [
+                        'text' => 'Untuk membuat pilihan input berbentuk daftar seperti "Hadir", "Izin", "Sakit", fitur yang digunakan adalah ...',
+                        'a' => 'Flash Fill saja',
+                        'b' => 'Subtotal',
+                        'c' => 'Data Validation',
+                        'd' => 'Page Orientation',
+                        'jawaban' => 'C'
+                    ],
+                    [
+                        'text' => 'Rumus yang tepat untuk menampilkan "Lulus" jika nilai di A2 minimal 70, selain itu "Tidak Lulus", adalah ...',
+                        'a' => '=SUM(A2>=70,"Lulus","Tidak Lulus")',
+                        'b' => '=COUNTIF(A2,"Lulus")',
+                        'c' => '=AVERAGE(A2,"Lulus")',
+                        'd' => '=IF(A2>=70,"Lulus","Tidak Lulus")',
+                        'jawaban' => 'C'
+                    ],
+                    [
+                        'text' => 'Rumus yang tepat untuk menampilkan "Lulus" jika nilai di A2 minimal 70, selain itu "Tidak Lulus", adalah ...',
+                        'a' => '=SUM(A2>=70,"Lulus","Tidak Lulus")',
+                        'b' => '=COUNTIF(A2,"Lulus")',
+                        'c' => '=AVERAGE(A2,"Lulus")',
+                        'd' => '=IF(A2>=70,"Lulus","Tidak Lulus")',
+                        'jawaban' => 'C'
+                    ],
+                    [
+                        'text' => 'Rumus yang tepat untuk menampilkan "Lulus" jika nilai di A2 minimal 70, selain itu "Tidak Lulus", adalah ...',
+                        'a' => '=SUM(A2>=70,"Lulus","Tidak Lulus")',
+                        'b' => '=COUNTIF(A2,"Lulus")',
+                        'c' => '=AVERAGE(A2,"Lulus")',
+                        'd' => '=IF(A2>=70,"Lulus","Tidak Lulus")',
+                        'jawaban' => 'C'
+                    ],
+                    [
+                        'text' => 'Rumus yang tepat untuk menampilkan "Lulus" jika nilai di A2 minimal 70, selain itu "Tidak Lulus", adalah ...',
+                        'a' => '=SUM(A2>=70,"Lulus","Tidak Lulus")',
+                        'b' => '=COUNTIF(A2,"Lulus")',
+                        'c' => '=AVERAGE(A2,"Lulus")',
+                        'd' => '=IF(A2>=70,"Lulus","Tidak Lulus")',
+                        'jawaban' => 'C'
+                    ],
+                    [
+                        'text' => 'Rumus yang tepat untuk menampilkan "Lulus" jika nilai di A2 minimal 70, selain itu "Tidak Lulus", adalah ...',
+                        'a' => '=SUM(A2>=70,"Lulus","Tidak Lulus")',
+                        'b' => '=COUNTIF(A2,"Lulus")',
+                        'c' => '=AVERAGE(A2,"Lulus")',
+                        'd' => '=IF(A2>=70,"Lulus","Tidak Lulus")',
+                        'jawaban' => 'C'
+                    ],
+                    [
+                        'text' => 'Rumus yang tepat untuk menampilkan "Lulus" jika nilai di A2 minimal 70, selain itu "Tidak Lulus", adalah ...',
+                        'a' => '=SUM(A2>=70,"Lulus","Tidak Lulus")',
+                        'b' => '=COUNTIF(A2,"Lulus")',
+                        'c' => '=AVERAGE(A2,"Lulus")',
+                        'd' => '=IF(A2>=70,"Lulus","Tidak Lulus")',
+                        'jawaban' => 'C'
+                    ],
+                    [
+                        'text' => 'Rumus yang tepat untuk menampilkan "Lulus" jika nilai di A2 minimal 70, selain itu "Tidak Lulus", adalah ...',
+                        'a' => '=SUM(A2>=70,"Lulus","Tidak Lulus")',
+                        'b' => '=COUNTIF(A2,"Lulus")',
+                        'c' => '=AVERAGE(A2,"Lulus")',
+                        'd' => '=IF(A2>=70,"Lulus","Tidak Lulus")',
+                        'jawaban' => 'C'
+                    ],
+                    [
+                        'text' => 'Rumus yang tepat untuk menampilkan "Lulus" jika nilai di A2 minimal 70, selain itu "Tidak Lulus", adalah ...',
+                        'a' => '=SUM(A2>=70,"Lulus","Tidak Lulus")',
+                        'b' => '=COUNTIF(A2,"Lulus")',
+                        'c' => '=AVERAGE(A2,"Lulus")',
+                        'd' => '=IF(A2>=70,"Lulus","Tidak Lulus")',
+                        'jawaban' => 'C'
+                    ],
+                    [
+                        'text' => 'Rumus yang tepat untuk menampilkan "Lulus" jika nilai di A2 minimal 70, selain itu "Tidak Lulus", adalah ...',
+                        'a' => '=SUM(A2>=70,"Lulus","Tidak Lulus")',
+                        'b' => '=COUNTIF(A2,"Lulus")',
+                        'c' => '=AVERAGE(A2,"Lulus")',
+                        'd' => '=IF(A2>=70,"Lulus","Tidak Lulus")',
+                        'jawaban' => 'C'
+                    ],
+                    [
+                        'text' => 'Rumus yang tepat untuk menampilkan "Lulus" jika nilai di A2 minimal 70, selain itu "Tidak Lulus", adalah ...',
+                        'a' => '=SUM(A2>=70,"Lulus","Tidak Lulus")',
+                        'b' => '=COUNTIF(A2,"Lulus")',
+                        'c' => '=AVERAGE(A2,"Lulus")',
+                        'd' => '=IF(A2>=70,"Lulus","Tidak Lulus")',
+                        'jawaban' => 'C'
+                    ],
+                    
                 ];
             }
 
