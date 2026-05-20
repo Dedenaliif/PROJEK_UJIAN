@@ -73,6 +73,7 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/import-siswa', [UserController::class, 'importCsv'])->name('siswa.import');
         Route::get('/user/template-csv', [UserController::class, 'downloadTemplate'])->name('siswa.template');
+        Route::get('/user/download', [UserController::class, 'downloadUserCsv'])->name('user.download');
     });
 
     /*

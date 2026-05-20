@@ -52,9 +52,9 @@
                         </select>
                     </div>
 
-                    <input type="hidden"
-                        name="password"
-                        value="12345678">
+                     <small class="text-muted">
+                        Password sama dengan username
+                    </small>
 
                 </div>
 

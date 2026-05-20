@@ -60,9 +60,9 @@
 
                     </div>
 
-                    <input type="hidden"
-                        name="password"
-                        value="12345678">
+                    <small class="text-muted">
+                        Password otomatis mengikuti username baru
+                    </small>
 
                 </div>
 

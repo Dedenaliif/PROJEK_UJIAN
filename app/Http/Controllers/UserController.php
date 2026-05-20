@@ -20,11 +20,33 @@ class UserController extends Controller
         return view('user.create');
     }
 
+    private function generateUsername($nama)
+    {
+        $nama = trim($nama);
+        $parts = explode(' ', $nama);
+
+        $username = strtolower($parts[0]);
+
+        if (count($parts) > 1) {
+            for ($i = 1; $i < count($parts); $i++) {
+                $username .= '.' . strtolower(substr($parts[$i], 0, 1));
+            }
+        }
+
+        return $username;
+    }
+
     public function store(Request $request)
     {
+       $request->validate([
+            'username' => 'required|string'
+        ]);
+
+        $generatedUsername = $this->generateUsername($request->username);
+
         User::create([
-            'username' => $request->username,
-            'password' => bcrypt($request->password),
+            'username' => $generatedUsername,
+            'password' => Hash::make($generatedUsername),
             'role' => $request->role
         ]);
 
@@ -38,12 +60,16 @@ class UserController extends Controller
     }
     public function update(Request $request, $id)
     {
-        $user = User::findOrFail($id);
+       $user = User::findOrFail($id);
+
+        $generatedUsername = $this->generateUsername($request->username);
+
         $user->update([
-            'username' => $request->username,
+            'username' => $generatedUsername,
             'role' => $request->role,
-            'password' => $request->password
+            'password' => Hash::make($generatedUsername)
         ]);
+
 
         return redirect()->route('user.index')->with('success', 'Data Berhasil Diubah');
     }
@@ -138,4 +164,36 @@ class UserController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+
+    public function downloadUserCsv()
+    {
+        $filename = "data_user_siswa.csv";
+
+        $headers = [
+            "Content-Type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+        ];
+
+        // hanya ambil user role siswa
+        $users = User::where('role', 'siswa')->get();
+
+        $callback = function () use ($users) {
+            $file = fopen('php://output', 'w');
+
+            // header csv
+            fputcsv($file, ['username', 'password'], ';');
+
+            foreach ($users as $user) {
+                fputcsv($file, [
+                    $user->username,
+                    $user->username // password = username
+                ], ';');
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
 }
