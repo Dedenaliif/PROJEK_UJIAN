@@ -13,7 +13,7 @@ class JurusanSeeder extends Seeder
     public function run(): void
     {
         \App\Models\Jurusan::create([
-            'nama_jurusan' => 'TKJ',
+            'nama_jurusan' => 'TJKT',
         ]);
 
         \App\Models\Jurusan::create([
@@ -25,7 +25,7 @@ class JurusanSeeder extends Seeder
         ]);
 
         \App\Models\Jurusan::create([
-            'nama_jurusan' => 'PR',
+            'nama_jurusan' => 'BR',
         ]);
     }
 }

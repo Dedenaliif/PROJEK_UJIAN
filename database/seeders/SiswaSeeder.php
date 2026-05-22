@@ -3,39 +3,13 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
-class UserSeeder extends Seeder
+class SiswaSeeder extends Seeder
 {
-    public function run(): void
+    public function run()
     {
-        // akun default
-        User::create([
-            'username' => 'admin',
-            'password' => bcrypt('admin123'),
-            'role' => 'admin',
-        ]);
-
-        User::create([
-            'username' => 'penguji',
-            'password' => bcrypt('penguji'),
-            'role' => 'penguji',
-        ]);
-
-        User::create([
-            'username' => 'siswa',
-            'password' => bcrypt('siswa'),
-            'role' => 'siswa',
-        ]);
-
-        User::create([
-            'username' => 'pengawas',
-            'password' => bcrypt('pengawas'),
-            'role' => 'pengawas',
-        ]);
-
         $data = [
-
             'ABI MANYU ZULFIKAR',
             'ADEN RANGGA DARMAWAN',
             'AGUNG SULISTIO',
@@ -76,7 +50,6 @@ class UserSeeder extends Seeder
             'SYAFRIZAL BINUKO ARGA RADITYA NARDIANTA',
             'VICKY VENDI SAEPUDIN',
             'WAHYU SETIYAWAN',
-
             'AURELLIA AZZAHRA PUTRI',
             'DEA NISHA ARYANI',
             'DHEAMI KHOIRUNISA',
@@ -104,7 +77,6 @@ class UserSeeder extends Seeder
             'SYIFA FITRI RAMADHANI',
             'YURIKE RAMADHANY',
             'ZAHRA PUTRI AULIA',
-
             'AHMAD FAUZAN SEPTIANA',
             'AHMAD YAYANG PRIADI',
             'ALFI AR RASYID',
@@ -146,7 +118,6 @@ class UserSeeder extends Seeder
             'SRI ANISA',
             'TEUKU MUHAMMAD RAFI',
             'YUSI NUR MEILINDA',
-
             'AGUNG NUGRAHA',
             'ALVARO APRILLIAN',
             'ANASTASYA FELISHA SIAHAYA LOPULIZA',
@@ -177,36 +148,18 @@ class UserSeeder extends Seeder
             'YUSNANDINI NURUL HIKMAH',
         ];
 
+        $insert = [];
+        $userId = 5;
+
         foreach ($data as $nama) {
-
-            if ($nama === 'SITI RAISYA') {
-                $username = 'sitiraisya';
-
-            } elseif ($nama === 'SITI ROHMAH') {
-                $username = 'sitirohmah';
-
-            } else {
-
-                $parts = preg_split('/\s+/', strtolower(trim($nama)));
-
-                if (count($parts) === 1) {
-                    $username = $parts[0];
-                } else {
-                    $inisial = '';
-
-                    for ($i = 1; $i < count($parts); $i++) {
-                        $inisial .= substr($parts[$i], 0, 1);
-                    }
-
-                    $username = $parts[0] . '.' . $inisial;
-                }
-            }
-
-            User::create([
-                'username' => $username,
-                'password' => bcrypt($username),
-                'role' => 'siswa',
-            ]);
+            $insert[] = [
+                'user_id' => $userId++,
+                'nama_siswa' => $nama,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
         }
+
+        DB::table('siswas')->insert($insert);
     }
 }

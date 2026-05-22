@@ -14,7 +14,7 @@ class Ujian extends Model
         'waktu_mulai',
         'waktu_selesai',
         'tipe'
-    ];    
+    ];
     public function pertanyaans()
     {
         return $this->hasMany(Pertanyaan::class);
@@ -23,6 +23,11 @@ class Ujian extends Model
     public function percobaanUjians()
     {
         return $this->hasMany(PercobaanUjian::class);
+    }
+
+    public function sesiSiswa()
+    {
+        return $this->hasMany(UjianSiswaSesi::class);
     }
 
 

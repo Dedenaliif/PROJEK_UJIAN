@@ -34,22 +34,22 @@
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ $s->nama_siswa }}</td>
-                                <td>{{ $s->nis }}</td>
+                                <td>{{ $s->nis ?? '' }}</td>
 
                                 <td>
                                     <span class="badge bg-primary">
-                                        {{ $s->kelas->nama_kelas }}
+                                        {{ $s->kelas->nama_kelas ?? '' }}
                                     </span>
                                 </td>
 
                                 <td>
                                     <span class="badge bg-success">
-                                        {{ $s->jurusan->nama_jurusan }}
+                                        {{ $s->jurusan->nama_jurusan ?? '' }}
                                     </span>
                                 </td>
                             </tr>
                         @empty
-                           
+
                         @endforelse
                     </tbody>
 

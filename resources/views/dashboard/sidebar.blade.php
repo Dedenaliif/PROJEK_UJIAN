@@ -14,14 +14,11 @@
     {{-- USER --}}
     @php
         $user = auth()->user();
-        $nama = $user->role == 'siswa'
-            ? ($user->siswa->nama_siswa ?? $user->username)
-            : $user->username;
+        $nama = $user->role == 'siswa' ? $user->siswa->nama_siswa ?? $user->username : $user->username;
     @endphp
 
     <div class="text-center py-3 border-bottom">
-        <img src="https://ui-avatars.com/api/?name={{ $nama }}"
-            class="rounded-circle mb-2" width="50">
+        <img src="https://ui-avatars.com/api/?name={{ $nama }}" class="rounded-circle mb-2" width="50">
         <div class="fw-semibold">{{ $nama }}</div>
         <small class="text-muted text-capitalize">{{ $user->role }}</small>
     </div>
@@ -31,7 +28,6 @@
 
         {{-- ADMIN --}}
         @if ($user->role == 'admin')
-
             <li class="menu-header small text-uppercase">
                 <span>Master Data</span>
             </li>
@@ -64,12 +60,17 @@
                 </a>
             </li>
 
+            <li class="menu-item {{ request()->routeIs('sesi.*') ? 'active' : '' }}">
+                <a href="{{ route('sesi.index') }}" class="menu-link">
+                    <i class="menu-icon bx bx-time"></i>
+                    <div>Data Sesi</div>
+                </a>
+            </li>
         @endif
 
 
         {{-- PENGUJI --}}
         @if ($user->role == 'penguji')
-
             <li class="menu-header small text-uppercase">
                 <span>Ujian</span>
             </li>
@@ -80,7 +81,6 @@
                     <div>Manajemen Ujian</div>
                 </a>
             </li>
-
         @endif
 
 
@@ -91,7 +91,7 @@
                 <span>Menu</span>
             </li>
 
-            @if($siswa)
+            @if ($siswa)
                 <li class="menu-item {{ request()->is('siswa/ujian') ? 'active' : '' }}">
                     <a href="{{ url('siswa/ujian') }}" class="menu-link">
                         <i class="menu-icon bx bx-pencil"></i>
@@ -119,7 +119,6 @@
 
         {{-- PENGAWAS --}}
         @if ($user->role == 'pengawas')
-
             <li class="menu-header small text-uppercase">
                 <span>Monitoring</span>
             </li>
@@ -130,7 +129,6 @@
                     <div>Monitoring Ujian</div>
                 </a>
             </li>
-
         @endif
 
     </ul>

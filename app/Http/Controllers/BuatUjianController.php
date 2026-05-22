@@ -9,6 +9,10 @@ use Illuminate\Support\Carbon;
 use App\Models\Jawaban;
 use App\Models\Kelas;
 use App\Models\Pertanyaan;
+use App\Models\UjianSiswaSesi;
+use App\Models\Sesi;
+use App\Models\Siswa;
+use Illuminate\Http\Request;
 
 class BuatUjianController extends Controller
 {
@@ -73,6 +77,7 @@ class BuatUjianController extends Controller
     // ==============================
     public function index()
     {
+        // cek ujian aktif siswa
         if (Auth::user()->role === 'siswa') {
 
             $aktif = PercobaanUjian::where('user_id', Auth::id())
@@ -82,10 +87,11 @@ class BuatUjianController extends Controller
             foreach ($aktif as $p) {
 
                 $ujian = Ujian::find($p->ujian_id);
+
                 if (!$ujian) continue;
 
                 $end = Carbon::parse($p->waktu_mulai)
-                    ->addMinutes((int) $ujian->waktu);
+                    ->addMinutes((int)$ujian->waktu);
 
                 if (now()->greaterThan($end)) {
 
@@ -98,18 +104,52 @@ class BuatUjianController extends Controller
                         'nilai' => $hasil['nilai']
                     ]);
 
-                    return redirect()->route('ujian.hasil', $p->ujian_id);
+                    return redirect()
+                        ->route('ujian.hasil', $p->ujian_id);
                 }
             }
         }
 
-        $ujians = Ujian::withCount([
+        // ambil semua ujian
+        $ujians = Ujian::with([
+            'pertanyaans',
+            'sesiSiswa'
+        ])
+        ->withCount([
             'percobaanUjians as jumlah_percobaan' => function ($q) {
                 $q->where('user_id', Auth::id());
             }
-        ])->get();
+        ])
+        ->get();
 
-        return view('ujian.index', compact('ujians'));
+        // data sesi
+        $sesis = Sesi::all();
+
+        // semua siswa (untuk modal penguji)
+        $siswas = Siswa::all();
+
+        $sesiSaya = [];
+
+        if (
+            Auth::user()->role == 'siswa'
+            && Auth::user()->siswa
+        ) {
+
+            $data = UjianSiswaSesi::with('sesi')
+                ->where('siswa_id', Auth::user()->siswa->id)
+                ->get();
+
+            foreach ($data as $item) {
+                $sesiSaya[$item->ujian_id] = $item->sesi;
+            }
+        }
+
+        return view('ujian.index', compact(
+            'ujians',
+            'sesis',
+            'siswas',
+            'sesiSaya'
+        ));
     }
 
     // ==============================
@@ -326,4 +366,34 @@ class BuatUjianController extends Controller
         return redirect()->route('ujian.index')
             ->with('success', 'Ujian berhasil dibuat!');
     }
+
+
+    public function simpanSesi(Request $request)
+    {
+        $request->validate([
+            'ujian_id' => 'required',
+            'sesi_id' => 'required'
+        ]);
+
+        // hapus data lama sesi ini
+        UjianSiswaSesi::where('ujian_id', $request->ujian_id)
+            ->where('sesi_id', $request->sesi_id)
+            ->delete();
+
+        // insert ulang checkbox terpilih
+        if ($request->has('siswa')) {
+
+            foreach ($request->siswa as $siswaId) {
+
+                UjianSiswaSesi::create([
+                    'ujian_id' => $request->ujian_id,
+                    'sesi_id' => $request->sesi_id,
+                    'siswa_id' => $siswaId
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Sesi berhasil disimpan');
+    }
+
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use Database\Seeders\SiswaSeeder;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -22,6 +23,8 @@ class DatabaseSeeder extends Seeder
             JurusanSeeder::class,
             UjianSeeder::class,
             PertanyaanSeeder::class,
+            SiswaSeeder::class,
+            SesiSeeder::class
         ]);
         // User::factory()->create([
         //     'name' => 'Test User',

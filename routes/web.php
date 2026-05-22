@@ -13,7 +13,8 @@ use App\Http\Controllers\{
     UserController,
     SiswaController,
     KelasController,
-    JurusanController
+    JurusanController,
+    SesiController
 };
 use Illuminate\Support\Facades\Auth;
 /*
@@ -74,6 +75,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/import-siswa', [UserController::class, 'importCsv'])->name('siswa.import');
         Route::get('/user/template-csv', [UserController::class, 'downloadTemplate'])->name('siswa.template');
         Route::get('/user/download', [UserController::class, 'downloadUserCsv'])->name('user.download');
+        Route::resource('sesi', SesiController::class);
     });
 
     /*
@@ -98,6 +100,7 @@ Route::middleware('auth')->group(function () {
             Route::put('/{id}', [BuatSoalController::class, 'update'])->name('soal.update');
             Route::delete('/{ujian}/{id}', [BuatSoalController::class, 'destroy'])->name('soal.destroy');
         });
+        Route::post('/ujian/sesi/simpan', [BuatUjianController::class,'simpanSesi'])->name('ujian.sesi.simpan');
     });
 
     /*
