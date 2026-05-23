@@ -77,7 +77,7 @@
                                     <label class="form-label fw-semibold">Kelas</label>
                                     <select name="kelas"
                                         class="form-select @error('kelas') is-invalid @enderror
-                                    "@if ($siswa && $siswa->kelas_id) disabled @endif>
+                                    "@if ($siswa && $siswa->kelas_id)  @endif>
 
                                         <option value="">-- Pilih Kelas --</option>
 
@@ -99,7 +99,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">Jurusan</label>
                                     <select name="jurusan" class="form-select @error('jurusan') is-invalid @enderror"
-                                        @if ($siswa && $siswa->jurusan_id) disabled @endif>
+                                        @if ($siswa && $siswa->jurusan_id)  @endif>
 
                                         <option value="">-- Pilih Jurusan --</option>
 
@@ -116,7 +116,36 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">No Telepon</label>
+                                    <input type="text" name="no_hp"
+                                        class="form-control @error('no_hp') is-invalid @enderror"
+                                        value="{{ old('no_hp', $siswa->no_hp ?? '') }}" placeholder="Masukkan No Telepon">
 
+                                    @error('no_hp')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Email</label>
+                                    <input type="email" name="email"
+                                        class="form-control @error('email') is-invalid @enderror"
+                                        value="{{ old('email', $siswa->email ?? '') }}" placeholder="Masukkan Email">
+
+                                    @error('email')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">NIK</label>
+                                    <input type="text" name="nik"
+                                        class="form-control @error('nik') is-invalid @enderror"
+                                        value="{{ old('nik', $siswa->nik ?? '') }}" placeholder="Masukkan NIK">
+
+                                    @error('nik')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
                             </div>
 
                             {{-- BUTTON --}}

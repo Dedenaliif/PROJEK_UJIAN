@@ -217,8 +217,8 @@ class HalamanUjianController extends Controller
         $percobaan->update([
             'status' => 'selesai',
             'waktu_selesai' => now(),
-            'skor' => $jawabanBenar,
-            'nilai' => $nilai
+            'jawaban_benar' => $jawabanBenar,
+            'skor' => $nilai
         ]);
 
         return redirect()->route('ujian.hasil', $ujianId);

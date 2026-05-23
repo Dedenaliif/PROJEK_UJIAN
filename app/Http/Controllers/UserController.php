@@ -38,7 +38,7 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-       $request->validate([
+        $request->validate([
             'username' => 'required|string'
         ]);
 
@@ -60,7 +60,7 @@ class UserController extends Controller
     }
     public function update(Request $request, $id)
     {
-       $user = User::findOrFail($id);
+        $user = User::findOrFail($id);
 
         $generatedUsername = $this->generateUsername($request->username);
 
@@ -92,55 +92,72 @@ class UserController extends Controller
         $handle = fopen($file->getRealPath(), 'r');
 
         // 3. Lewati baris pertama (header: nama, jurusan)
-        fgetcsv($handle, 1000, ";");
+        fgetcsv($handle, 1000, ",");
 
         $successCount = 0;
 
         // 4. Looping isi file
-        while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
+        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
 
-            // Proteksi: Pastikan baris ini memiliki minimal 2 kolom agar tidak error Undefined Key 1
-            if (count($data) < 3) continue;
+        // dd($data);
+            // Proteksi: Pastikan baris ini memiliki minimal 3 kolom (Nama, NIS, Jurusan)
+            if (count($data) < 1) continue;
 
             $namaLengkap = trim($data[0]);
-            $nis = trim($data[1]);
-            $jurusan = trim($data[2]);
 
-            if (empty($namaLengkap) || empty($nis) || empty($jurusan)) continue;
-            // 5. 🔥 LOGIKA SINGKATAN JURUSAN (Ambil huruf kapital awal)
-            // Mencari semua huruf besar (A-Z) di dalam string kalimat jurusan
-            preg_match_all('/[A-Z]/', $jurusan, $matches);
-            // Menggabungkan huruf-huruf besar tersebut menjadi satu kata (Misal: R, P, L menjadi RPL)
-            $jurusanSingkat = implode('', $matches[0]);
+            if (empty($namaLengkap)) continue;
 
-            // Jika karena alasan tertentu tidak ada huruf kapital, gunakan 3 huruf pertama sebagai cadangan
-            if (empty($jurusanSingkat)) {
-                $jurusanSingkat = substr(str_replace(' ', '', $jurusan), 0, 3);
+            // 5. 🔥 LOGIKA FORMAT USERNAME: nama_depan.singkatan_nama_belakang
+            // Pecah nama lengkap berdasarkan spasi, hilangkan double space jika ada
+            // Pecah nama & bersihkan spasi ganda
+            $pecahNama = explode(' ', preg_replace('/\s+/', ' ', trim($namaLengkap)));
+
+            $namaDepan = strtolower($pecahNama[0]);
+
+            // Ambil semua kata setelah nama depan
+            $namaBelakangArray = array_slice($pecahNama, 1);
+
+            $inisialBelakang = '';
+
+            foreach ($namaBelakangArray as $kata) {
+                $inisialBelakang .= strtolower(substr($kata, 0, 1));
             }
-            // 5. Pecah nama lengkap berdasarkan spasi untuk mengambil nama depan
-            $pecahNama = explode(' ', trim($namaLengkap));
-            $namaDepan = $pecahNama[0];
 
-            // 6. Gabungkan Nama Depan + Jurusan dengan pemisah titik (.)
-            // Str::slug akan otomatis mengubah huruf besar jadi kecil dan spasi jadi tanda strip (-)
-            $username = Str::slug($nis . '.' . $namaDepan . '-' . $jurusanSingkat, '.');
+            // Format username
+            if ($inisialBelakang != '') {
+                $usernameRaw = $namaDepan . '.' . $inisialBelakang;
+            } else {
+                $usernameRaw = $namaDepan;
+            }
 
-            // 7. Simpan ke Database
+            // Bersihkan karakter aneh
+            $username = Str::slug($usernameRaw, '.');
+            // Tambahan proteksi jika terjadi duplikasi username (misal: Agung Pirdaus dan Agung Permana sama-sama agung.p)
+            $usernameAsli = $username;
+            $counter = 1;
+            while (User::where('username', $username)->exists()) {
+                $username = $usernameAsli . $counter; // Menjadi agung.p1, agung.p2, dst jika bentrok
+                $counter++;
+            }
+
+            // 6. Simpan ke Database (Tabel Users)
             User::updateOrCreate(
-                ['username' => $username], // Cek unik berdasarkan kombinasi username baru
+                ['username' => $username],
                 [
-                    'password' => Hash::make($username), // Password default sama dengan username
-                    'role'     => 'siswa', // Otomatis set sebagai siswa (bukan admin)
-                    // 'jurusan'  => $jurusan, // Aktifkan jika tabel users Anda punya kolom jurusan
+                    'password' => Hash::make($username), // Password default disamakan dengan username baru
+                    'role'     => 'siswa',
                 ]
             );
+
+            // Jika kamu juga ingin memasukkan data tersebut ke tabel 'Siswas', 
+            // kamu bisa melanjutkannya di bawah ini menggunakan User ID hasil updateOrCreate.
 
             $successCount++;
         }
 
         fclose($handle);
 
-        return back()->with('success', "Berhasil men-generate $successCount data user dengan format nama depan + jurusan!");
+        return back()->with('success', "Berhasil men-generate $successCount data user dengan format nama_depan.inisial!");
     }
 
     public function downloadTemplate()
@@ -157,7 +174,7 @@ class UserController extends Controller
             $file = fopen('php://output', 'w');
 
             // 🔥 HEADER
-            fputcsv($file, ['nama', 'nis', 'jurusan'], ';');
+            fputcsv($file, ['nama'], ',');
 
             fclose($file);
         };
@@ -181,10 +198,11 @@ class UserController extends Controller
             $file = fopen('php://output', 'w');
 
             // header csv
-            fputcsv($file, ['username', 'password'], ';');
+            fputcsv($file, ['Nama Siswa', 'Username', 'Password'], ';');
 
             foreach ($users as $user) {
                 fputcsv($file, [
+                    $user->siswa->nama_siswa, // password = username
                     $user->username,
                     $user->username // password = username
                 ], ';');
@@ -195,5 +213,4 @@ class UserController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
-
 }

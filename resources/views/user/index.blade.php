@@ -32,7 +32,7 @@ Swal.fire({
             <i class="bx bx-download"></i> Template CSV
         </a>
         <a href="{{ route('user.download') }}" class="btn btn-info">
-            <i class="bx bx-export"></i> Download Data Siswa
+            <i class="bx bx-export"></i> Download Data User
         </a>
 
         <button class="btn btn-primary"

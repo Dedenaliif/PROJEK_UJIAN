@@ -24,7 +24,10 @@ return new class extends Migration
 
             $table->enum('status', ['sedang dikerjakan', 'selesai'])->default('sedang dikerjakan');
 
-            $table->float('skor')->nullable();;
+            $table->integer('jawaban_benar')->nullable();
+            $table->float('skor')->nullable();
+            $table->float('skor_final')->nullable();
+            $table->foreignId('dinilai_oleh')->nullable()->constrained('users')->nullOnDelete();
 
             $table->timestamps();
         });

@@ -7,17 +7,55 @@
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
 
-                <div>
-                    <h4 class="fw-bold mb-1">Data Ujian</h4>
-                    <small class="text-muted">Kelola dan pantau ujian</small>
+                <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                    {{-- KIRI --}}
+                    <div>
+                        <h4 class="fw-bold mb-1">Data Ujian</h4>
+                        <small class="text-muted">Kelola dan pantau ujian</small>
+                    </div>
+
+                    {{-- KANAN --}}
+                    <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2">
+
+                        {{-- FORM FILTER --}}
+                        <form action="{{ route('ujian.exportSemuaNilai') }}" method="GET"
+                            class="d-flex flex-column flex-md-row gap-2">
+
+                            <select name="kelas_id" class="form-select w-auto">
+                                <option value="">Semua Kelas</option>
+
+                                @foreach ($kelas as $item)
+                                    <option value="{{ $item->id }}">
+                                        {{ $item->nama_kelas }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <select name="jurusan_id" class="form-select w-auto">
+                                <option value="">Semua Jurusan</option>
+
+                                @foreach ($jurusan as $item)
+                                    <option value="{{ $item->id }}">
+                                        {{ $item->nama_jurusan }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <button class="btn btn-success px-3">
+                                Download Report
+                            </button>
+
+                        </form>
+
+                        {{-- BUTTON --}}
+                        <a href="{{ route('ujian.create') }}" class="btn btn-primary px-4">
+                            <i class="bx bx-plus"></i> Buat Ujian
+                        </a>
+
+                    </div>
+
                 </div>
-
-                @if (auth()->user()->role == 'penguji')
-                    <a href="{{ route('ujian.create') }}" class="btn btn-primary px-4">
-                        <i class="bx bx-plus"></i> Buat Ujian
-                    </a>
-                @endif
-
             </div>
         </div>
 

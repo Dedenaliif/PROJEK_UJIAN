@@ -68,14 +68,15 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::resource('user', UserController::class)->except(['show']);
-        Route::resource('siswa', SiswaController::class);
+        Route::resource('siswa', SiswaController::class)->only(['index', 'store']);
         Route::resource('kelas', KelasController::class);
         Route::resource('jurusan', JurusanController::class);
+        Route::resource('sesi', SesiController::class);
 
         Route::post('/import-siswa', [UserController::class, 'importCsv'])->name('siswa.import');
         Route::get('/user/template-csv', [UserController::class, 'downloadTemplate'])->name('siswa.template');
         Route::get('/user/download', [UserController::class, 'downloadUserCsv'])->name('user.download');
-        Route::resource('sesi', SesiController::class);
+        Route::get('/siswa/export-csv', [SiswaController::class, 'exportCsv'])->name('siswa.exportCsv');
     });
 
     /*
@@ -92,7 +93,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/ujian/report/{ujian}', [BuatUjianController::class, 'report'])
             ->name('ujian.report');
         Route::get('/ujian/export/{ujian}', [BuatUjianController::class, 'exportCSV'])->name('ujian.export');
-
+        Route::get('/ujianexportnilai', [BuatUjianController::class, 'exportSemuaNilai'])->name('ujian.exportSemuaNilai');
         Route::prefix('soal')->group(function () {
             Route::get('/{ujian}', [BuatSoalController::class, 'create'])->name('soal.create');
             Route::post('/{ujian}', [BuatSoalController::class, 'store'])->name('soal.store');
@@ -100,7 +101,10 @@ Route::middleware('auth')->group(function () {
             Route::put('/{id}', [BuatSoalController::class, 'update'])->name('soal.update');
             Route::delete('/{ujian}/{id}', [BuatSoalController::class, 'destroy'])->name('soal.destroy');
         });
-        Route::post('/ujian/sesi/simpan', [BuatUjianController::class,'simpanSesi'])->name('ujian.sesi.simpan');
+        Route::post('/ujian/markupnilai',[BuatUjianController::class,'simpanMarkup'])->name('ujian.markupnilai.simpan');
+        Route::post('/ujian/sesi/simpan', [BuatUjianController::class, 'simpanSesi'])->name('ujian.sesi.simpan');
+        Route::get('/markupnilai',[BuatUjianController::class,'markupnilai'])->name('markup.nilai');
+        Route::get('/ujian/exportDataMarkup',[BuatUjianController::class,'exportDataMarkup'])->name('ujian.exportDataMarkup');
     });
 
     /*

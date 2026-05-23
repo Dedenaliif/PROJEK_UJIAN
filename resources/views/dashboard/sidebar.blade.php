@@ -81,6 +81,12 @@
                     <div>Manajemen Ujian</div>
                 </a>
             </li>
+            <li class="menu-item {{ request()->routeIs('markup.*') ? 'active' : '' }}">
+                <a href="{{ route('markup.nilai') }}" class="menu-link">
+                    <i class="menu-icon bx bx-file"></i>
+                    <div>Manajemen Markup Nilai</div>
+                </a>
+            </li>
         @endif
 
 

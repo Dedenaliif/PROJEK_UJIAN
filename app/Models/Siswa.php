@@ -12,6 +12,9 @@ class Siswa extends Model
         'nis',
         'kelas_id',
         'jurusan_id',
+        'no_hp',
+        'email',
+        'nik',
     ];
 
     public function user()
@@ -32,5 +35,9 @@ class Siswa extends Model
     public function ujianSesi()
     {
         return $this->hasMany(UjianSiswaSesi::class);
+    }
+    public function percobaanUjian()
+    {
+        return $this->hasMany(PercobaanUjian::class);
     }
 }
