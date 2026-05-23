@@ -354,9 +354,9 @@ class BuatUjianController extends Controller
         return view('ujian.create');
     }
 
-    public function store()
+    public function store(Request $request)
     {
-        $validatedData = request()->validate([
+        $validatedData = $request->validate([
             'judul' => 'required',
             'tipe' => 'required',
             'deskripsi' => 'nullable',
@@ -403,204 +403,169 @@ class BuatUjianController extends Controller
 
     public function exportSemuaNilai(Request $request)
     {
-        // =========================
-        // QUERY + FILTER
-        // =========================
+        // ==========================================
+        // 1. QUERY + FILTER (Eager Loading dioptimalkan)
+        // ==========================================
         $query = Siswa::with([
             'kelas',
             'jurusan',
             'user.percobaanUjians.ujian'
         ]);
+        $stringFilter = 'Semua';
 
-        // FILTER KELAS
         if ($request->filled('kelas_id')) {
             $query->where('kelas_id', $request->kelas_id);
+
+            // Ambil data kelas untuk nama file
+            $kelas = \App\Models\Kelas::find($request->kelas_id);
+            if ($kelas) {
+                $stringFilter = $kelas->nama_kelas;
+            }
         }
 
-        // FILTER JURUSAN
         if ($request->filled('jurusan_id')) {
             $query->where('jurusan_id', $request->jurusan_id);
+
+            // Ambil data jurusan untuk nama file
+            $jurusan = \App\Models\Jurusan::find($request->jurusan_id);
+            if ($jurusan) {
+                // Jika kelas juga dipilih, gabungkan namanya. Jika tidak, pakai nama jurusan saja.
+                $stringFilter = $request->filled('kelas_id')
+                    ? $stringFilter . '-' . $jurusan->nama_jurusan
+                    : $jurusan->nama_jurusan;
+            }
         }
 
-        $siswas = $query->get()->sortBy([
-            fn($a, $b) => strcmp(
-                optional($a->kelas)->nama_kelas,
-                optional($b->kelas)->nama_kelas
-            ),
+        // Bersihkan nama file dari karakter yang dilarang oleh sistem OS (seperti / \ ? * : " < > |) dan spasi
+        $slugFilter = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|', ' '], '-', $stringFilter);
 
-            fn($a, $b) => strcmp(
-                $a->nama_siswa,
-                $b->nama_siswa
-            )
-        ]);
+        // Hasilnya akan seperti: Laporan-Ujian-10-RPL-20260523-1726.csv
+        $filename = "Laporan-Ujian-{$slugFilter}-" . date('Ymd-Hi') . ".csv";
 
-        // =========================
-        // HITUNG MAX PERCOBAAN
-        // =========================
+        // Ambil data dari database
+        $siswas = $query->get();
+
+        // ==========================================
+        // 2. HITUNG MAKSIMAL KOLOM DYNAMIC (Word & Excel)
+        // ==========================================
         $maxWord = 0;
         $maxExcel = 0;
 
         foreach ($siswas as $siswa) {
-
             $percobaan = $siswa->user->percobaanUjians ?? collect();
 
-            $wordCount = $percobaan
-                ->filter(fn($p) => optional($p->ujian)->tipe == 'word')
-                ->count();
-
-            $excelCount = $percobaan
-                ->filter(fn($p) => optional($p->ujian)->tipe == 'excel')
-                ->count();
+            $wordCount = $percobaan->filter(fn($p) => strtolower(optional($p->ujian)->tipe) == 'word')->count();
+            $excelCount = $percobaan->filter(fn($p) => strtolower(optional($p->ujian)->tipe) == 'excel')->count();
 
             $maxWord = max($maxWord, $wordCount);
             $maxExcel = max($maxExcel, $excelCount);
         }
 
-        $filename = "Laporan-Semua-Ujian-" . date('Ymd-Hi') . ".csv";
+        // ==========================================
+        // 3. SORTING DATA SECARA KONSISTEN
+        // ==========================================
+        // Di-sort berdasarkan Kelas, lalu Jurusan, lalu Nama Siswa
+        $siswas = $siswas->sortBy([
+            fn($a, $b) => strcmp(optional($a->kelas)->nama_kelas ?? '', optional($b->kelas)->nama_kelas ?? ''),
+            fn($a, $b) => strcmp(optional($a->jurusan)->nama_jurusan ?? '', optional($b->jurusan)->nama_jurusan ?? ''),
+            fn($a, $b) => strcmp($a->nama_siswa ?? '', $b->nama_siswa ?? '')
+        ]);
 
-        return response()->stream(function () use (
-            $siswas,
-            $maxWord,
-            $maxExcel,
-        ) {
+        // $filename = "Laporan-Semua-Ujian-" . $jurusan->nama_jurusan . date('Ymd-Hi') . ".csv";
 
+        // ==========================================
+        // 4. STREAM DOWNLOAD CSV
+        // ==========================================
+        return response()->stream(function () use ($siswas, $maxWord, $maxExcel) {
             $file = fopen('php://output', 'w');
 
-            // UTF-8 BOM
+            // UTF-8 BOM agar Excel langsung membaca karakter spesial & pemisah dengan benar
             fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // =========================
-            // HEADER
-            // =========================
+            // Buat Struktur Header yang Konsisten
             $header = [
                 'No',
-                'NIS',
-                'Nama',
                 'Kelas',
-                'Jurusan'
+                'Jurusan',
+                'NIS',
+                'Nama Siswa'
             ];
 
-            // WORD
+            // Header Dynamic Word
             for ($i = 1; $i <= $maxWord; $i++) {
-                $header[] = "Word $i";
+                $header[] = "Word Percobaan $i";
             }
-
             $header[] = "Status Word";
 
-            // EXCEL
+            // Header Dynamic Excel
             for ($i = 1; $i <= $maxExcel; $i++) {
-                $header[] = "Excel $i";
+                $header[] = "Excel Percobaan $i";
             }
-
             $header[] = "Status Excel";
 
+            // Tulis header ke file csv (Rekomendasi gunakan koma ',' agar standar, atau tetap ';' jika regional komputer Indonesia)
             fputcsv($file, $header, ';');
 
-            // =========================
-            // GROUP BY KELAS/JURUSAN
-            // =========================
-            $grouped = $siswas->groupBy(function ($siswa) {
+            // Tulis Data Siswa
+            $no = 1;
+            foreach ($siswas as $siswa) {
+                $percobaan = $siswa->user->percobaanUjians ?? collect();
 
-                $kelas = optional($siswa->kelas)->nama_kelas ?? '-';
-                $jurusan = optional($siswa->jurusan)->nama_jurusan ?? '-';
+                // Filter & Sort Ujian Word
+                $word = $percobaan
+                    ->filter(fn($p) => strtolower(optional($p->ujian)->tipe) == 'word')
+                    ->sortBy('created_at')
+                    ->values();
 
-                return $kelas . ' | ' . $jurusan;
-            });
+                // Filter & Sort Ujian Excel
+                $excel = $percobaan
+                    ->filter(fn($p) => strtolower(optional($p->ujian)->tipe) == 'excel')
+                    ->sortBy('created_at')
+                    ->values();
 
-            foreach ($grouped as $groupName => $items) {
+                // Set Data Profil Utama di Depan
+                $row = [
+                    $no++,
+                    optional($siswa->kelas)->nama_kelas ?? '-',
+                    optional($siswa->jurusan)->nama_jurusan ?? '-',
+                    $siswa->nis,
+                    $siswa->nama_siswa,
+                ];
 
-                // JUDUL GROUP
-                fputcsv($file, [], ';');
-
-                fputcsv($file, [
-                    'KELAS/JURUSAN : ' . $groupName,
-                ], ';');
-
-                $no = 1;
-
-                foreach ($items as $siswa) {
-
-                    $percobaan = $siswa->user->percobaanUjians ?? collect();
-
-                    // WORD
-                    $word = $percobaan
-                        ->filter(fn($p) => strtolower(optional($p->ujian)->tipe) == 'word')
-                        ->sortBy('created_at')
-                        ->values();
-
-                    // EXCEL
-                    $excel = $percobaan
-                        ->filter(fn($p) => strtolower(optional($p->ujian)->tipe) == 'excel')
-                        ->sortBy('created_at')
-                        ->values();
-
-                    $row = [
-                        $no++,
-                        $siswa->nis,
-                        $siswa->nama_siswa,
-                        optional($siswa->kelas)->nama_kelas,
-                        optional($siswa->jurusan)->nama_jurusan,
-                    ];
-
-                    // =========================
-                    // NILAI WORD
-                    // =========================
-                    $nilaiWordList = [];
-
-                    for ($i = 0; $i < $maxWord; $i++) {
-
-                        $nilai = $word[$i]->skor ?? null;
-
-                        $nilaiWordList[] = $nilai;
-
-                        $row[] = $nilai ?? '-';
-                    }
-
-                    $nilaiTerbesarWord = collect($nilaiWordList)
-                        ->filter()
-                        ->max();
-
-                    if ($nilaiTerbesarWord === null) {
-                        $statusWord = '-';
-                    } else {
-                        $statusWord = $nilaiTerbesarWord >= 75
-                            ? 'Lulus'
-                            : 'Remedial';
-                    }
-
-                    $row[] = $statusWord;
-
-                    // =========================
-                    // NILAI EXCEL
-                    // =========================
-                    $nilaiExcelList = [];
-
-                    for ($i = 0; $i < $maxExcel; $i++) {
-
-                        $nilai = $excel[$i]->skor ?? null;
-
-                        $nilaiExcelList[] = $nilai;
-
-                        $row[] = $nilai ?? '-';
-                    }
-
-                    $nilaiTerbesarExcel = collect($nilaiExcelList)
-                        ->filter()
-                        ->max();
-
-                    if ($nilaiTerbesarExcel === null) {
-                        $statusExcel = '-';
-                    } else {
-                        $statusExcel = $nilaiTerbesarExcel >= 75
-                            ? 'Lulus'
-                            : 'Remedial';
-                    }
-
-                    $row[] = $statusExcel;
-
-                    // EXPORT
-                    fputcsv($file, $row, ';');
+                // --- PROSES NILAI WORD ---
+                $nilaiWordList = [];
+                for ($i = 0; $i < $maxWord; $i++) {
+                    $nilai = isset($word[$i]) ? $word[$i]->skor : null;
+                    $nilaiWordList[] = $nilai;
+                    $row[] = $nilai ?? '-';
                 }
+
+                $nilaiTerbesarWord = collect($nilaiWordList)->filter(fn($v) => !is_null($v))->max();
+                if ($nilaiTerbesarWord === null) {
+                    $statusWord = 'Belum Ujian';
+                } else {
+                    $statusWord = $nilaiTerbesarWord >= 75 ? 'Lulus' : 'Remedial';
+                }
+                $row[] = $statusWord;
+
+                // --- PROSES NILAI EXCEL ---
+                $nilaiExcelList = [];
+                for ($i = 0; $i < $maxExcel; $i++) {
+                    $nilai = isset($excel[$i]) ? $excel[$i]->skor : null;
+                    $nilaiExcelList[] = $nilai;
+                    $row[] = $nilai ?? '-';
+                }
+
+                $nilaiTerbesarExcel = collect($nilaiExcelList)->filter(fn($v) => !is_null($v))->max();
+                if ($nilaiTerbesarExcel === null) {
+                    $statusExcel = 'Belum Ujian';
+                } else {
+                    $statusExcel = $nilaiTerbesarExcel >= 75 ? 'Lulus' : 'Remedial';
+                }
+                $row[] = $statusExcel;
+
+                // Tulis baris data siswa ke CSV
+                fputcsv($file, $row, ';');
             }
 
             fclose($file);
