@@ -99,7 +99,7 @@ class UserController extends Controller
         // 4. Looping isi file
         while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
 
-        // dd($data);
+            // dd($data);
             // Proteksi: Pastikan baris ini memiliki minimal 3 kolom (Nama, NIS, Jurusan)
             if (count($data) < 1) continue;
 
@@ -184,27 +184,41 @@ class UserController extends Controller
 
     public function downloadUserCsv()
     {
-        $filename = "data_user_siswa.csv";
+        $filename = "Data_User_Siswa.csv";
 
         $headers = [
             "Content-Type" => "text/csv",
             "Content-Disposition" => "attachment; filename=$filename",
         ];
 
-        // hanya ambil user role siswa
-        $users = User::where('role', 'siswa')->get();
+        $users = User::with('siswa')
+            ->where('role', 'siswa')
+            ->get();
 
         $callback = function () use ($users) {
+
             $file = fopen('php://output', 'w');
 
-            // header csv
-            fputcsv($file, ['Nama Siswa', 'Username', 'Password'], ';');
+            // UTF-8 BOM
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            // HEADER
+            fputcsv($file, [
+                'Nama Siswa',
+                'Username',
+                'Password'
+            ], ';');
 
             foreach ($users as $user) {
+
                 fputcsv($file, [
-                    $user->siswa->nama_siswa, // password = username
+
+                    optional($user->siswa)->nama_siswa ?? '-',
+
                     $user->username,
-                    $user->username // password = username
+
+                    $user->username,
+
                 ], ';');
             }
 
