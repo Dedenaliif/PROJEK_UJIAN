@@ -778,81 +778,70 @@ class BuatUjianController extends Controller
         ])->get();
 
         foreach ($siswas as $siswa) {
-
             $percobaan = $siswa->user->percobaanUjians ?? collect();
 
-            // =========================
-            // WORD TERBESAR
-            // =========================
+            // ==========================================
+            // WORD TERBESAR (Berdasarkan Skor Tertinggi)
+            // ==========================================
             $wordTerbesar = $percobaan
-                ->filter(
-                    fn($p) =>
-                    strtolower(optional($p->ujian)->tipe) == 'word'
-                )
+                ->filter(fn($p) => strtolower(optional($p->ujian)->tipe) == 'word')
                 ->sortByDesc('skor')
                 ->first();
 
-            // =========================
-            // EXCEL TERBESAR
-            // =========================
+            // ==========================================
+            // EXCEL TERBESAR (Berdasarkan Skor Tertinggi)
+            // ==========================================
             $excelTerbesar = $percobaan
-                ->filter(
-                    fn($p) =>
-                    strtolower(optional($p->ujian)->tipe) == 'excel'
-                )
+                ->filter(fn($p) => strtolower(optional($p->ujian)->tipe) == 'excel')
                 ->sortByDesc('skor')
                 ->first();
 
-            // simpan object percobaan
+            // Simpan objek percobaan ke properti dinamis siswa
             $siswa->word_terbesar = $wordTerbesar;
             $siswa->excel_terbesar = $excelTerbesar;
 
-            // simpan nilainya
+            // Tampilkan nilai asli di kolom nilai
             $siswa->nilai_word = $wordTerbesar?->skor;
+            $s_skor = $excelTerbesar?->skor;
             $siswa->nilai_excel = $excelTerbesar?->skor;
-            $nilaiMarkupWord = $siswa->user->percobaanUjians
-                ->filter(function ($item) {
-                    return strtolower(optional($item->ujian)->tipe) == 'word';
-                })
-                ->first();
-            $siswa->nilaiMarkupWord = $nilaiMarkupWord?->skor_final;
 
-            $nilaiMarkupExcel = $siswa->user->percobaanUjians
-                ->filter(function ($item) {
-                    return strtolower(optional($item->ujian)->tipe) == 'excel';
-                })
-                ->first();
-            $siswa->nilaiMarkupExcel = $nilaiMarkupExcel?->skor_final;
+            // PERBAIKAN LOGIKA: Ambil skor_final LANGSUNG dari percobaan terbesar agar sinkron saat disimpan
+            $siswa->nilaiMarkupWord = $wordTerbesar?->skor_final;
+            $siswa->nilaiMarkupExcel = $excelTerbesar?->skor_final;
         }
+
         $kelas = Kelas::all();
         $jurusan = Jurusan::all();
 
         return view('ujian.markupnilai', compact('siswas', 'kelas', 'jurusan'));
     }
+
     public function simpanMarkup(Request $request)
     {
-        // dd($request->all());
-        // WORD
-        if ($request->word_id) {
+        // Validasi data input demi keamanan database
+        $request->validate([
+            'word_id' => 'nullable|exists:percobaan_ujians,id',
+            'excel_id' => 'nullable|exists:percobaan_ujians,id',
+            'markup_word' => 'nullable|numeric|min:0|max:100',
+            'markup_excel' => 'nullable|numeric|min:0|max:100',
+        ]);
 
-            PercobaanUjian::where('id', $request->word_id)
+        // Update WORD jika ID ada
+        if ($request->word_id) {
+            \App\Models\PercobaanUjian::where('id', $request->word_id)
                 ->update([
                     'skor_final' => $request->markup_word
                 ]);
         }
 
-        // EXCEL
+        // Update EXCEL jika ID ada
         if ($request->excel_id) {
-
-            PercobaanUjian::where('id', $request->excel_id)
+            \App\Models\PercobaanUjian::where('id', $request->excel_id)
                 ->update([
                     'skor_final' => $request->markup_excel
                 ]);
         }
 
-        return back()->with(
-            'success',
-            'Markup berhasil disimpan'
-        );
+        return back()->with('success', 'Markup berhasil disimpan ke database!');
     }
 }
