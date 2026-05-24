@@ -203,6 +203,7 @@
                                                         method="POST">
                                                         @csrf
                                                         <button class="btn btn-primary btn-sm"
+                                                            {{ !isset($sesiSaya[$item->id]) ? 'disabled' : '' }}
                                                             {{ $item->jumlah_percobaan >= $item->max_percobaan ? 'disabled' : '' }}>
                                                             Mulai
                                                         </button>

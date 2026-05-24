@@ -186,6 +186,8 @@ class HalamanUjianController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
+    // ... (kode atas tetap sama)
+
     public function selesai($ujianId)
     {
         $percobaan = PercobaanUjian::where('user_id', Auth::id())
@@ -206,8 +208,6 @@ class HalamanUjianController extends Controller
         }
 
         $totalSoal = Pertanyaan::where('ujian_id', $ujianId)->count();
-
-        // 🔥 FIX DI SINI
         $jawabanBenar = $jawaban->where('benar', 1)->count();
 
         $nilai = $totalSoal > 0
@@ -215,10 +215,11 @@ class HalamanUjianController extends Controller
             : 0;
 
         $percobaan->update([
+            // Agar sinkron, kita simpan nilai hasil kalkulasi ke database
             'status' => 'selesai',
             'waktu_selesai' => now(),
             'jawaban_benar' => $jawabanBenar,
-            'skor' => $nilai
+            'skor' => $nilai // Menyimpan nilai asli (0-100) bukan jumlah jawaban benar
         ]);
 
         return redirect()->route('ujian.hasil', $ujianId);
@@ -236,40 +237,33 @@ class HalamanUjianController extends Controller
                 ->with('error', 'Belum ada hasil ujian');
         }
 
+        // Mengambil data siswa dari relasi user atau model Siswa Anda
         $siswa = Siswa::where('user_id', Auth::id())->first();
-
         $jawaban = Jawaban::where('percobaan_ujian_id', $percobaan->id)->get();
-
         $totalSoal = Pertanyaan::where('ujian_id', $ujianId)->count();
 
-        // JUMLAH JAWABAN
         $jumlahJawaban = $jawaban->count();
-
-        // BENAR
         $jawabanBenar = $jawaban->where('benar', 1)->count();
-
-        // SALAH
         $jawabanSalah = $jumlahJawaban - $jawabanBenar;
 
-        // NILAI
         $nilai = $totalSoal > 0
             ? round(($jawabanBenar / $totalSoal) * 100)
             : 0;
 
-        // STATUS
+        // Kriteria kelulusan sesuai instruksi Anda (Nilai diatas 75 / >= 75)
         $lulus = $nilai >= 75;
 
-        // PERCOBAAN
+        $ujian = Ujian::findOrFail($ujianId);
         $jumlahPercobaan = PercobaanUjian::where('user_id', Auth::id())
             ->where('ujian_id', $ujianId)
             ->count();
 
-        $ujian = Ujian::findOrFail($ujianId);
-
         $sisaPercobaan = $ujian->max_percobaan - $jumlahPercobaan;
 
+        // Melemparkan data ke halaman hasil ujian
         return view('ujian.hasil', compact(
             'siswa',
+            'ujian', // Pastikan $ujian ikut dikirim
             'totalSoal',
             'jumlahJawaban',
             'jawabanBenar',
@@ -279,5 +273,45 @@ class HalamanUjianController extends Controller
             'sisaPercobaan'
         ));
     }
+
+    // 🔥 TAMBAHKAN FUNGSI BARU INI UNTUK DOWNLOAD/CETAK PDF
+    public function cetakSertifikat($ujianId)
+    {
+        $percobaan = PercobaanUjian::where('user_id', Auth::id())
+            ->where('ujian_id', $ujianId)
+            ->where('status', 'selesai')
+            ->latest()
+            ->first();
+
+        if (!$percobaan) {
+            return abort(404, 'Data kelulusan tidak ditemukan.');
+        }
+
+        $totalSoal = Pertanyaan::where('ujian_id', $ujianId)->count();
+        $jawabanBenar = Jawaban::where('percobaan_ujian_id', $percobaan->id)->where('benar', 1)->count();
+        
+        $nilai = $totalSoal > 0 ? round(($jawabanBenar / $totalSoal) * 100) : 0;
+
+        // Proteksi keamanan: Jika manipulasi URL dilakukan secara sengaja
+        if ($nilai < 75) {
+            return abort(403, 'Maaf, Anda tidak berhak mengakses sertifikat ini.');
+        }
+
+        $siswa = Siswa::where('user_id', Auth::id())->first();
+        $ujian = Ujian::findOrFail($ujianId);
+
+        // Jika ingin langsung print via browser (HTML view biasa):
+        return view('sertifikat.index', compact('siswa', 'ujian', 'nilai'));
+
+        /* 
+           💡 NOTE: Jika Anda menggunakan package 'barryvdh/laravel-dompdf', 
+           gunakan baris di bawah ini untuk menggantikan return view di atas:
+           
+           $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('sertifikat.index', compact('siswa', 'ujian', 'nilai'))
+                     ->setPaper('a4', 'landscape');
+           return $pdf->download('Sertifikat_' . $siswa->nama_siswa . '.pdf');
+        */
+    }
+
 
 }

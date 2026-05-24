@@ -165,7 +165,7 @@ class BuatUjianController extends Controller
         $ujian = Ujian::findOrFail($ujianId);
 
         $listKelas = Kelas::all();
-        $listJurusan = \App\Models\Jurusan::all();
+        $listJurusan = Jurusan::all();
         $data = PercobaanUjian::with([
             'user.siswa.kelas',
             'user.siswa.jurusan'
@@ -276,67 +276,143 @@ class BuatUjianController extends Controller
     {
         $ujian = Ujian::findOrFail($ujianId);
 
+        // 1. Ambil data percobaan dengan Eager Loading
         $query = PercobaanUjian::with([
             'user.siswa.kelas',
             'user.siswa.jurusan'
         ])->where('ujian_id', $ujianId);
 
-        if (request('status') == 'lulus') {
-            $query->where('nilai', '>=', 75);
-        } elseif (request('status') == 'remedial') {
-            $query->where('nilai', '<', 75);
-        }
-
-        if (request('kelas_id')) {
+        // Filter Kelas & Jurusan di tingkat Database
+        if (request()->filled('kelas_id')) {
             $query->whereHas('user.siswa', function ($q) {
                 $q->where('kelas_id', request('kelas_id'));
             });
         }
-
-        if (request('jurusan_id')) {
+        if (request()->filled('jurusan_id')) {
             $query->whereHas('user.siswa', function ($q) {
                 $q->where('jurusan_id', request('jurusan_id'));
             });
         }
-        $data = $query->get()
-            ->map(function ($item) {
 
-                $hasil = $this->hitungNilai($item);
+        $rawPercobaan = $query->get();
 
-                $item->nilai = $hasil['nilai'];
-                $item->skor = $hasil['skor'];
+        // 2. Hitung nilai aslinya terlebih dahulu lewat fungsi hitungNilai()
+        $rawPercobaan = $rawPercobaan->map(function ($item) {
+            $hasil = $this->hitungNilai($item);
+            $item->nilai = $hasil['nilai'] ?? 0;
+            $item->skor = $hasil['skor'] ?? 0;
+            return $item;
+        });
 
-                return $item;
-            })
-            ->sortByDesc('nilai');
+        // Filter Status Kelulusan jika ada request (Berdasarkan Nilai Tertinggi Siswa)
+        // Kelompokkan data berdasarkan User ID (Siswa) terlebih dahulu
+        $groupedByUser = $rawPercobaan->groupBy('user_id');
 
-        $filename = "Laporan-" . str_replace(' ', '-', $ujian->judul) . "-" . date('Ymd-Hi') . ".csv";
+        // 3. Proses penyusunan data per siswa & cari tahu jumlah percobaan maksimal
+        $siswaDataList = collect();
+        $maxPercobaan = 0;
 
-        return response()->stream(function () use ($data) {
+        foreach ($groupedByUser as $userId => $percobaans) {
+            // Urutkan percobaan siswa berdasarkan waktu (tertua ke terbaru)
+            $sortedPercobaans = $percobaans->sortBy('created_at')->values();
 
+            // Cari nilai tertinggi dari semua percobaan siswa ini
+            $nilaiTertinggi = $sortedPercobaans->max('nilai');
+
+            // Filter status kelulusan di tingkat siswa
+            if (request('status') == 'lulus' && $nilaiTertinggi < 75) {
+                continue;
+            }
+            if (request('status') == 'remedial' && $nilaiTertinggi >= 75) {
+                continue;
+            }
+
+            // Ambil info siswa dari percobaan pertama
+            $firstPercobaan = $sortedPercobaans->first();
+            $siswa = $firstPercobaan->user->siswa ?? null;
+
+            if (!$siswa) continue;
+
+            // Catat jumlah percobaan terbanyak untuk header nantinya
+            $maxPercobaan = max($maxPercobaan, $sortedPercobaans->count());
+
+            $siswaDataList->push([
+                'jurusan' => $siswa->jurusan->nama_jurusan ?? '-',
+                'kelas' => $siswa->kelas->nama_kelas ?? '-',
+                'nis' => $siswa->nis ?? '-',
+                'nama' => $siswa->nama_siswa ?? '-',
+                'list_nilai' => $sortedPercobaans->pluck('nilai')->toArray(),
+                'nilai_tertinggi' => $nilaiTertinggi,
+                'status' => $nilaiTertinggi >= 75 ? 'Lulus' : 'Remedial'
+            ]);
+        }
+
+        // 4. SORTING AKHIR: Urutkan per Jurusan -> per Kelas -> per Nama Siswa
+        $siswaDataList = $siswaDataList->sortBy([
+            fn($a, $b) => strcmp($a['jurusan'], $b['jurusan']),
+            fn($a, $b) => strcmp($a['kelas'], $b['kelas']),
+            fn($a, $b) => strcmp($a['nama'], $b['nama']),
+        ]);
+
+        // 5. PENAMAAN FILE DINAMIS
+        $stringFilter = str_replace(' ', '-', $ujian->judul);
+        if (request()->filled('kelas_id')) {
+            $kelas = Kelas::find(request('kelas_id'));
+            if ($kelas) {
+                $stringFilter .= '-' . str_replace(' ', '-', $kelas->nama_kelas);
+            }
+        }
+        if (request()->filled('jurusan_id')) {
+            $jurusan = Jurusan::find(request('jurusan_id'));
+            if ($jurusan) {
+                $stringFilter .= '-' . str_replace(' ', '-', $jurusan->nama_jurusan);
+            }
+        }
+        if (request()->filled('status')) {
+            $stringFilter .= '-' . ucfirst(request('status'));
+        }
+
+        $filename = "Laporan-{$stringFilter}-" . date('Ymd-Hi') . ".csv";
+
+        // 6. STREAM DOWNLOAD CSV
+        return response()->stream(function () use ($siswaDataList, $maxPercobaan) {
             $file = fopen('php://output', 'w');
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM
 
-            fputcsv($file, [
-                'No',
-                'NIS',
-                'Nama',
-                'Kelas',
-                'Jurusan',
-                'Nilai',
-                'Status'
-            ], ';');
+            // Bangun Header Dinamis
+            $header = ['No', 'Jurusan', 'Kelas', 'NIS', 'Nama'];
 
-            foreach ($data as $i => $item) {
-                fputcsv($file, [
-                    $i + 1,
-                    $item->user->siswa->nis ?? '-',
-                    $item->user->siswa->nama_siswa ?? '-',
-                    $item->user->siswa->kelas->nama_kelas ?? '-',
-                    $item->user->siswa->jurusan->nama_jurusan ?? '-',
-                    $item->nilai ?? 0,
-                    $item->nilai >= 75 ? 'Lulus' : 'Remedial',
-                ], ';');
+            // Buat kolom percobaan sebanyak percobaan terbanyak (misal: P1, P2, P3)
+            for ($i = 1; $i <= $maxPercobaan; $i++) {
+                $header[] = "Percobaan $i";
+            }
+
+            $header[] = "Nilai Terbaik";
+            $header[] = "Status";
+
+            fputcsv($file, $header, ';');
+
+            // Tulis baris data siswa
+            $no = 1;
+            foreach ($siswaDataList as $data) {
+                $row = [
+                    $no++,
+                    $data['jurusan'],
+                    $data['kelas'],
+                    $data['nis'],
+                    $data['nama'],
+                ];
+
+                // Isi nilai tiap percobaan kesamping
+                for ($i = 0; $i < $maxPercobaan; $i++) {
+                    // Jika siswa punya nilai di percobaan ke-i, masukkan nilainya. Jika tidak, beri tanda '-'
+                    $row[] = isset($data['list_nilai'][$i]) ? $data['list_nilai'][$i] : '-';
+                }
+
+                $row[] = $data['nilai_tertinggi'];
+                $row[] = $data['status'];
+
+                fputcsv($file, $row, ';');
             }
 
             fclose($file);
@@ -417,7 +493,7 @@ class BuatUjianController extends Controller
             $query->where('kelas_id', $request->kelas_id);
 
             // Ambil data kelas untuk nama file
-            $kelas = \App\Models\Kelas::find($request->kelas_id);
+            $kelas = Kelas::find($request->kelas_id);
             if ($kelas) {
                 $stringFilter = $kelas->nama_kelas;
             }
@@ -427,7 +503,7 @@ class BuatUjianController extends Controller
             $query->where('jurusan_id', $request->jurusan_id);
 
             // Ambil data jurusan untuk nama file
-            $jurusan = \App\Models\Jurusan::find($request->jurusan_id);
+            $jurusan = Jurusan::find($request->jurusan_id);
             if ($jurusan) {
                 // Jika kelas juga dipilih, gabungkan namanya. Jika tidak, pakai nama jurusan saja.
                 $stringFilter = $request->filled('kelas_id')

@@ -101,10 +101,10 @@ Route::middleware('auth')->group(function () {
             Route::put('/{id}', [BuatSoalController::class, 'update'])->name('soal.update');
             Route::delete('/{ujian}/{id}', [BuatSoalController::class, 'destroy'])->name('soal.destroy');
         });
-        Route::post('/ujian/markupnilai',[BuatUjianController::class,'simpanMarkup'])->name('ujian.markupnilai.simpan');
+        Route::post('/ujian/markupnilai', [BuatUjianController::class, 'simpanMarkup'])->name('ujian.markupnilai.simpan');
         Route::post('/ujian/sesi/simpan', [BuatUjianController::class, 'simpanSesi'])->name('ujian.sesi.simpan');
-        Route::get('/markupnilai',[BuatUjianController::class,'markupnilai'])->name('markup.nilai');
-        Route::get('/ujian/exportDataMarkup',[BuatUjianController::class,'exportDataMarkup'])->name('ujian.exportDataMarkup');
+        Route::get('/markupnilai', [BuatUjianController::class, 'markupnilai'])->name('markup.nilai');
+        Route::get('/ujian/exportDataMarkup', [BuatUjianController::class, 'exportDataMarkup'])->name('ujian.exportDataMarkup');
     });
 
     /*
@@ -121,7 +121,9 @@ Route::middleware('auth')->group(function () {
 
         // list ujian
         Route::get('/ujian', [BuatUjianController::class, 'index'])->name('siswa.ujian');
-
+        Route::get('/ujian/{ujianId}/sertifikat', [HalamanUjianController::class, 'cetakSertifikat'])
+            ->name('ujian.sertifikat')
+            ->middleware('auth'); // Pastikan siswa wajib login
         // ujian
         Route::post('/ujian/{ujian}/start', [HalamanUjianController::class, 'start'])->name('ujianstart.start');
         Route::get('/ujian/{ujian}', [HalamanUjianController::class, 'show'])->name('ujianstart.show');

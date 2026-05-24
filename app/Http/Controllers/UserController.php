@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -91,73 +92,88 @@ class UserController extends Controller
         $file = $request->file('file');
         $handle = fopen($file->getRealPath(), 'r');
 
-        // 3. Lewati baris pertama (header: nama, jurusan)
-        fgetcsv($handle, 1000, ",");
+        // 3. Lewati baris pertama (header)
+        fgetcsv($handle, 1000, ";");
 
         $successCount = 0;
 
         // 4. Looping isi file
-        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+        while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
 
-            // dd($data);
-            // Proteksi: Pastikan baris ini memiliki minimal 3 kolom (Nama, NIS, Jurusan)
-            if (count($data) < 1) continue;
+            if (count($data) < 3) continue;
 
             $namaLengkap = trim($data[0]);
+            $nis         = trim($data[1]);
+            $jurusanRaw  = trim($data[2]); // Contoh: "Teknik Komputer Jaringan"
 
-            if (empty($namaLengkap)) continue;
+            if (empty($namaLengkap) || empty($nis) || empty($jurusanRaw)) continue;
 
-            // 5. 🔥 LOGIKA FORMAT USERNAME: nama_depan.singkatan_nama_belakang
-            // Pecah nama lengkap berdasarkan spasi, hilangkan double space jika ada
-            // Pecah nama & bersihkan spasi ganda
-            $pecahNama = explode(' ', preg_replace('/\s+/', ' ', trim($namaLengkap)));
+            // --- AMBIL NAMA BELAKANG ---
+            $pecahNama = explode(' ', preg_replace('/\s+/', ' ', $namaLengkap));
+            $namaBelakang = count($pecahNama) > 1 ? end($pecahNama) : $pecahNama[0];
 
-            $namaDepan = strtolower($pecahNama[0]);
+            // --- 🔥 BARU: LOGIKA MENYINGKAT JURUSAN ---
+            // Pecah jurusan berdasarkan spasi (misal: ["Teknik", "Komputer", "Jaringan"])
+            $pecahJurusan = explode(' ', preg_replace('/\s+/', ' ', $jurusanRaw));
+            $singkatanJurusan = '';
 
-            // Ambil semua kata setelah nama depan
-            $namaBelakangArray = array_slice($pecahNama, 1);
+            // Daftar kata sambung yang ingin diabaikan/dibuang (gunakan lowercase)
+            $kataDiabaikan = ['dan', 'atau', '&', 'of', 'in'];
 
-            $inisialBelakang = '';
+            foreach ($pecahJurusan as $kataJurusan) {
+                // Ubah dulu ke lowercase untuk pengecekan yang akurat
+                $kataBersih = strtolower(trim($kataJurusan));
 
-            foreach ($namaBelakangArray as $kata) {
-                $inisialBelakang .= strtolower(substr($kata, 0, 1));
+                // Jika kata tersebut ada di dalam daftar diabaikan, lewati (jangan ambil hurufnya)
+                if (in_array($kataBersih, $kataDiabaikan) || empty($kataBersih)) {
+                    continue;
+                }
+
+                // Ambil huruf pertama dari kata yang lolos seleksi
+                $singkatanJurusan .= substr($kataBersih, 0, 1);
             }
 
-            // Format username
-            if ($inisialBelakang != '') {
-                $usernameRaw = $namaDepan . '.' . $inisialBelakang;
-            } else {
-                $usernameRaw = $namaDepan;
-            }
+            // Hasil akhir dipastikan lowercase (misal: "tkj")
+            $singkatanJurusan = strtolower($singkatanJurusan);
 
-            // Bersihkan karakter aneh
+            // --- FORMAT USERNAME ---
+            // Hasilnya akan menjadi: 12345.permana.tkj
+            $usernameRaw = $nis . '.' . $namaBelakang . '.' . $singkatanJurusan;
             $username = Str::slug($usernameRaw, '.');
-            // Tambahan proteksi jika terjadi duplikasi username (misal: Agung Pirdaus dan Agung Permana sama-sama agung.p)
+
+            // Proteksi duplikat username
             $usernameAsli = $username;
             $counter = 1;
             while (User::where('username', $username)->exists()) {
-                $username = $usernameAsli . $counter; // Menjadi agung.p1, agung.p2, dst jika bentrok
+                $username = $usernameAsli . $counter;
                 $counter++;
             }
 
-            // 6. Simpan ke Database (Tabel Users)
-            User::updateOrCreate(
-                ['username' => $username],
-                [
-                    'password' => Hash::make($username), // Password default disamakan dengan username baru
-                    'role'     => 'siswa',
-                ]
-            );
+            // 6. Simpan ke Database
+            DB::transaction(function () use ($username, $namaLengkap, $nis, $jurusanRaw) {
 
-            // Jika kamu juga ingin memasukkan data tersebut ke tabel 'Siswas', 
-            // kamu bisa melanjutkannya di bawah ini menggunakan User ID hasil updateOrCreate.
+                $user = User::create([
+                    'username' => $username,
+                    'password' => Hash::make($username),
+                    'role'     => 'siswa',
+                ]);
+
+                // Di tabel siswas, kita tetap simpan nama jurusan aslinya ("Teknik Komputer Jaringan")
+                DB::table('siswas')->insert([
+                    'user_id'    => $user->id,
+                    'nama_siswa' => $namaLengkap,
+                    'nis'        => $nis,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            });
 
             $successCount++;
         }
 
         fclose($handle);
 
-        return back()->with('success', "Berhasil men-generate $successCount data user dengan format nama_depan.inisial!");
+        return back()->with('success', "Berhasil men-generate $successCount data user dengan format nis.namabelakang.singkatan_jurusan!");
     }
 
     public function downloadTemplate()
@@ -182,25 +198,40 @@ class UserController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    public function downloadUserCsv()
+    public function downloadUserCsv(Request $request)
     {
-        $filename = "Data_User_Siswa.csv";
+        $query = User::with('siswa')->where('role', 'siswa');
+
+        // 1. Tentukan suffix nama file berdasarkan jurusan yang dipilih
+        $suffixJurusan = 'Semua_Jurusan';
+
+        if ($request->has('jurusan') && !empty($request->jurusan)) {
+            $query->where('username', 'LIKE', '%.' . $request->jurusan . '%');
+
+            // Jika ada jurusan terpilih, ubah suffix menjadi huruf kapital (misal: TJKT)
+            $suffixJurusan = strtoupper($request->jurusan);
+        }
+
+        $users = $query->get();
+
+        // 2. MASUKKAN JURUSAN KE DALAM NAMA FILE
+        // Hasilnya akan menjadi: Data_User_Siswa_TJKT.csv atau Data_User_Siswa_Semua_Jurusan.csv
+        $filename = "Data_User_Siswa_" . $suffixJurusan . ".csv";
 
         $headers = [
             "Content-Type" => "text/csv",
             "Content-Disposition" => "attachment; filename=$filename",
         ];
 
-        $users = User::with('siswa')
-            ->where('role', 'siswa')
-            ->get();
-
         $callback = function () use ($users) {
-
             $file = fopen('php://output', 'w');
 
-            // UTF-8 BOM
+            // UTF-8 BOM agar karakter terbaca dengan benar di Excel
             fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            // 🔥 TRIK UTAMA: Paksa Excel memisahkan kolom menggunakan TITIK KOMA (;)
+            // Cara ini otomatis membuat kolom Excel menjadi proporsional (tidak dempet) tanpa pop-up error
+            fwrite($file, "sep=;\n");
 
             // HEADER
             fputcsv($file, [
@@ -209,16 +240,12 @@ class UserController extends Controller
                 'Password'
             ], ';');
 
+            // DATA LOOPING
             foreach ($users as $user) {
-
                 fputcsv($file, [
-
                     optional($user->siswa)->nama_siswa ?? '-',
-
                     $user->username,
-
                     $user->username,
-
                 ], ';');
             }
 
