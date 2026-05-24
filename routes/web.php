@@ -14,7 +14,8 @@ use App\Http\Controllers\{
     SiswaController,
     KelasController,
     JurusanController,
-    SesiController
+    SesiController,
+    UjianStartController
 };
 use Illuminate\Support\Facades\Auth;
 /*
@@ -135,7 +136,17 @@ Route::middleware('auth')->group(function () {
 
         // check status ujian
         Route::get('/cek-status-ujian', [BuatUjianController::class, 'checkStatus'])->name('ujian.cekStatus');
-    });
+
+        // latihan Ujian
+        Route::post('/ujian/{id}/latihan-start',[UjianStartController::class,'latihanStart'])->name('ujian.latihan.start');
+        Route::get('/ujian/{id}/latihan',[UjianStartController::class,'latihanShow'])->name('ujian.latihan.show');
+        Route::post('/ujian/{id}/latihan-save',[UjianStartController::class,'latihanSave'])->name('ujian.latihan.save');
+        Route::post('/ujian/{id}/latihan-selesai',[UjianStartController::class,'latihanSelesai'])->name('ujian.latihan.selesai');
+        Route::post('/latihan-selesai/{id}',[UjianStartController::class,'latihanSelesai'])->name('ujianstart.latihanSelesai');
+        Route::get('/ujian/{id}/latihan-hasil',[UjianStartController::class,'hasilLatihan'])->name('ujian.latihan.hasil');
+        Route::get('/latihan-check',[BuatUjianController::class,'checkLatihan'])->name('latihan.check');
+
+        });
 
     /*
                     |--------------------------------------------------------------------------

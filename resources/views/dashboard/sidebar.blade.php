@@ -93,26 +93,35 @@
         {{-- SISWA --}}
         @if ($user->role == 'siswa')
 
+            @php
+                $siswa = $user->siswa;
+
+                $dataLengkap =
+                    $siswa && $siswa->kelas_id && $siswa->jurusan_id && $siswa->nis && $siswa->no_hp && $siswa->email;
+            @endphp
+
             <li class="menu-header small text-uppercase">
                 <span>Menu</span>
             </li>
 
-            @if ($siswa)
-                <li class="menu-item {{ request()->is('siswa/ujian') ? 'active' : '' }}">
-                    <a href="{{ url('siswa/ujian') }}" class="menu-link">
+            {{-- MULAI UJIAN --}}
+            @if ($dataLengkap)
+                <li class="menu-item {{ request()->is('siswa/ujian*') ? 'active' : '' }}">
+                    <a href="{{ route('latihan.check') }}" class="menu-link">
                         <i class="menu-icon bx bx-pencil"></i>
                         <div>Mulai Ujian</div>
                     </a>
                 </li>
             @else
                 <li class="menu-item disabled">
-                    <a href="#" class="menu-link">
+                    <a href="{{ route('datadiri.index') }}" class="menu-link">
                         <i class="menu-icon bx bx-lock"></i>
                         <div>Isi Data Diri Dulu</div>
                     </a>
                 </li>
             @endif
 
+            {{-- DATA DIRI --}}
             <li class="menu-item {{ request()->routeIs('datadiri.*') ? 'active' : '' }}">
                 <a href="{{ route('datadiri.index') }}" class="menu-link">
                     <i class="menu-icon bx bx-id-card"></i>

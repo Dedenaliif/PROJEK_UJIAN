@@ -844,4 +844,33 @@ class BuatUjianController extends Controller
 
         return back()->with('success', 'Markup berhasil disimpan ke database!');
     }
+
+    public function checkLatihan()
+    {
+        $user = Auth::user();
+
+        if ($user->role !== 'siswa') {
+            return redirect()->route('ujian.index');
+        }
+
+        $ujian = Ujian::first();
+
+        if (!$ujian) {
+            return redirect()
+                ->route('siswa.ujian')
+                ->with('error', 'Belum ada ujian tersedia.');
+        }
+
+        $latihanSelesai = PercobaanUjian::where('user_id', $user->id)
+            ->where('ujian_id', $ujian->id)
+            ->where('status', 'selesai')
+            ->exists();
+
+        if (!$latihanSelesai) {
+            return redirect()->route('ujian.latihan.show', $ujian->id);
+        }
+
+        return redirect()->route('siswa.ujian');
+    }
+
 }

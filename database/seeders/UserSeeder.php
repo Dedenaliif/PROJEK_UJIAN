@@ -4,6 +4,9 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+Use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserSeeder extends Seeder
 {
@@ -34,179 +37,137 @@ class UserSeeder extends Seeder
             'role' => 'pengawas',
         ]);
 
-        // $data = [
+        $files = [
+            database_path('seeders/csv/template_siswa_tjkt1.csv'),
+            database_path('seeders/csv/template_siswa_akl2.csv'),
+            database_path('seeders/csv/template_siswa_mplb3.csv'),
+            database_path('seeders/csv/template_siswa_pb4.csv'),
+        ];
 
-        //     'ABI MANYU ZULFIKAR',
-        //     'ADEN RANGGA DARMAWAN',
-        //     'AGUNG SULISTIO',
-        //     'AHMAD FARID KAMALUDIN',
-        //     'AMALINA KHOIRRU UMMAH',
-        //     'ANTON RAIZRAMA SATRIO',
-        //     'ARGA MUKTI',
-        //     'AZHAR DIPRAJA',
-        //     'BAGAS PRASETYO',
-        //     'BANYU BUMI FIRDAUS',
-        //     'DESTA MUHAMMAD FAJAR',
-        //     'DIRLI NAJAR RABI GALIH',
-        //     'EGAR ARTHA PRIATNA',
-        //     'ERLANGGA MAULANA FIRDAUS',
-        //     'FITRIA JAYA LESTARI',
-        //     'GILANG PERDANA KHENSI',
-        //     'HABI HUSNI MUBAROK',
-        //     'HERLINA',
-        //     'ILHAM RAMADHAN SAEPUDIN',
-        //     'M. ANDHIKA PRADITIYA SETIAWAN',
-        //     'MARSEL PUTRA MUHAJIRIN',
-        //     'MOCHAMAD LUTHFI KHAIRULKAMIL NURRAFIQ',
-        //     'MUHAMAD DAVA PRATAMA',
-        //     'MUHAMAD HAFIDZ HAMDANIE',
-        //     'MUHAMAD RAMADANI NUGRAHA',
-        //     'MUHAMMAD AKMAL PRAWARA TSUKI',
-        //     'MUHAMMAD RIZKAR RAFSANZANI',
-        //     'MUHAMMAD VITORIO GERONIMO',
-        //     'RAFFLY ALMIYADI',
-        //     'RAKHA HAIRUL FAJRI',
-        //     'RAMANDANI KURNIA PUTRA',
-        //     'RIDWAN PATUR RAHMAN',
-        //     'RIZAL RAMDANI',
-        //     'RIZKI CAHYADI',
-        //     'RIZKY HIDAYAH FAUZIE',
-        //     'SEPTI NUGRAHA PUTRA',
-        //     'SITI MUDRIKAH',
-        //     'SYAFRIZAL BINUKO ARGA RADITYA NARDIANTA',
-        //     'VICKY VENDI SAEPUDIN',
-        //     'WAHYU SETIYAWAN',
+        foreach ($files as $file) {
 
-        //     'AURELLIA AZZAHRA PUTRI',
-        //     'DEA NISHA ARYANI',
-        //     'DHEAMI KHOIRUNISA',
-        //     'FAUZAN WIRYA PRATAMA',
-        //     'GALUH GIBRANI PRADANA',
-        //     'GISELLA DEWI APRILIA',
-        //     'INDRIYANI',
-        //     'KAILANI TIARA IVANA',
-        //     'KEISHA AMELIA BAHARIZKI',
-        //     'LUNA SUCI NUR WIBOWO',
-        //     'LUTFI SYAHFFANA AZZAHRA',
-        //     'MILA MARYANI',
-        //     'MUHAMAD ZACKY MAULANA',
-        //     'NABILA RASYIFA ZAHRA',
-        //     'NOLY NAUZI RAMADHAN',
-        //     'NURMALA',
-        //     'PUTRI NURRIFDA',
-        //     'RAHMA AULIA RAMADANI',
-        //     'RD. YUDI DARMAWAN',
-        //     'REZA RAHMAN JULIADI',
-        //     'SANDRIYA',
-        //     'SHERA DWI RAHMAWATI',
-        //     'SHEVTIAN ARDIANSYAH',
-        //     'SHIFA RUPIANTI PUTRI',
-        //     'SYIFA FITRI RAMADHANI',
-        //     'YURIKE RAMADHANY',
-        //     'ZAHRA PUTRI AULIA',
+            if (!file_exists($file)) {
+                $this->command->warn("File tidak ditemukan: $file");
+                continue;
+            }
 
-        //     'AHMAD FAUZAN SEPTIANA',
-        //     'AHMAD YAYANG PRIADI',
-        //     'ALFI AR RASYID',
-        //     'ALIYCIA SAYIDINA JULIASARI YUSUF',
-        //     'ANISA ANGGUN ROMADONA',
-        //     'AURA ZASKIA RAMADHANI',
-        //     'DERI JUANDA',
-        //     'DEWI ARINI',
-        //     'DIMAS NUGRAHA',
-        //     'DZAKIYAN DZIKRAN KHAERUL',
-        //     'DZAKY SATYA PERKASA',
-        //     'FABYAN RAFFI SETIAWAN',
-        //     'HESTI FEBRIYANI',
-        //     'IIS ROSDIANA',
-        //     'ILHAM MAULANA HARYADI',
-        //     'KAILA ANASTASIA',
-        //     'KEYZIA ZHAVIRA CHALLISHA',
-        //     'MALEA ANATASIA',
-        //     'MEYLANY ISSYA VADILLAH',
-        //     'MEYSYA NOER INDRIANI',
-        //     'MOCH. NOER ARIRAFI FABER',
-        //     'MOCHAMAD FERDIAN GAUTAMA PURWANDI',
-        //     'MOHAMAD RUSLIN MUTTAQIN',
-        //     'MUHAMMAD NUR HAFIZ',
-        //     'MUHAMMAD RAYHAN',
-        //     'MUHAMMAD RIZKY SAUQI AKBAR',
-        //     'NABILA RAHMA FITRIA',
-        //     'NANDA RIZKY FAUJIAH',
-        //     'NAUFAL FAUZAN',
-        //     'NAYA YONIRA',
-        //     'NAZWA SHYAIRA RHATASYA',
-        //     'NEYLA PERMATA KUSUMAWATI',
-        //     'OKTAVIA RAMADANI',
-        //     'RAYSHA RAMADHANI',
-        //     'RISA NUR ANDIYANI',
-        //     'RISKA AULIA',
-        //     'SALWA SOFIAH LESTARI',
-        //     'SILVI NABILA',
-        //     'SRI ANISA',
-        //     'TEUKU MUHAMMAD RAFI',
-        //     'YUSI NUR MEILINDA',
+            $handle = fopen($file, 'r');
 
-        //     'AGUNG NUGRAHA',
-        //     'ALVARO APRILLIAN',
-        //     'ANASTASYA FELISHA SIAHAYA LOPULIZA',
-        //     'ARIEF RISKI MAULANA',
-        //     'ARKANSYAH',
-        //     'ARSEL AGNI JUL FIRLI',
-        //     'BAYU SURYA RAHMAN',
-        //     'DAVI SEPTIAN GUMELAR',
-        //     'DIAN FITRIANI',
-        //     'DRAJAD RAMDHAN WIDI PUTRA',
-        //     'EZAR RADITYA IRAWAN',
-        //     'IKHSAN FAIZ HILMI',
-        //     'JANUAR MAULANA FADLI',
-        //     'MOCHAMAD ARDI DARMANSAH',
-        //     'MUHAMAD IFAN SETIAWAN',
-        //     'MUHAMAD RIZKY',
-        //     'MUHAMAD YANUAR AL MUQTADAR',
-        //     'MUHAMAD ZULFA ABDILLAH',
-        //     'MUHAMMAD FAUZAN FATHURAHMAN',
-        //     'NABILA RISKI SUCIANTI',
-        //     'RAKA DWI ERYAN',
-        //     'RINGGA DESWA FIREL DIARKA',
-        //     'RIZKI REVALDY',
-        //     'ROBBY SAPUTRA',
-        //     'SITI RAISYA',
-        //     'SITI ROHMAH',
-        //     'WAHYU HIDAYAT',
-        //     'YUSNANDINI NURUL HIKMAH',
-        // ];
+            // skip header
+            fgetcsv($handle, 1000, ";");
 
-        // foreach ($data as $nama) {
+            while (($data = fgetcsv($handle, 1000, ";")) !== false) {
 
-        //     if ($nama === 'SITI RAISYA') {
-        //         $username = 'sitiraisya';
+                if (count($data) < 3) continue;
 
-        //     } elseif ($nama === 'SITI ROHMAH') {
-        //         $username = 'sitirohmah';
+                $namaLengkap = trim($data[0]);
+                $nis         = trim($data[1]);
+                $jurusanRaw  = trim($data[2]);
 
-        //     } else {
+                if (!$namaLengkap || !$nis || !$jurusanRaw) continue;
 
-        //         $parts = preg_split('/\s+/', strtolower(trim($nama)));
+                /*
+                ============================
+                AMBIL NAMA BELAKANG
+                ============================
+                */
+                $pecahNama = explode(' ', preg_replace('/\s+/', ' ', $namaLengkap));
 
-        //         if (count($parts) === 1) {
-        //             $username = $parts[0];
-        //         } else {
-        //             $inisial = '';
+                $namaBelakang = count($pecahNama) > 1
+                    ? end($pecahNama)
+                    : $pecahNama[0];
 
-        //             for ($i = 1; $i < count($parts); $i++) {
-        //                 $inisial .= substr($parts[$i], 0, 1);
-        //             }
+                /*
+                ============================
+                SINGKATAN JURUSAN
+                ============================
+                */
+                $pecahJurusan = explode(
+                    ' ',
+                    preg_replace('/\s+/', ' ', $jurusanRaw)
+                );
 
-        //             $username = $parts[0] . '.' . $inisial;
-        //         }
-        //     }
+                $singkatanJurusan = '';
 
-        //     User::create([
-        //         'username' => $username,
-        //         'password' => bcrypt($username),
-        //         'role' => 'siswa',
-        //     ]);
-        // }
+                $kataDiabaikan = [
+                    'dan',
+                    'atau',
+                    '&',
+                    'of',
+                    'in'
+                ];
+
+                foreach ($pecahJurusan as $kataJurusan) {
+
+                    $kataBersih = strtolower(trim($kataJurusan));
+
+                    if (
+                        in_array($kataBersih, $kataDiabaikan)
+                        || empty($kataBersih)
+                    ) {
+                        continue;
+                    }
+
+                    $singkatanJurusan .= substr($kataBersih, 0, 1);
+                }
+
+                $singkatanJurusan = strtolower($singkatanJurusan);
+
+                /*
+                ============================
+                FORMAT USERNAME
+                contoh:
+                12345.permana.tkj
+                ============================
+                */
+                $usernameRaw = $nis . '.' . $namaBelakang . '.' . $singkatanJurusan;
+
+                $username = Str::slug($usernameRaw, '.');
+
+                /*
+                ============================
+                PROTEKSI DUPLIKAT
+                ============================
+                */
+                $usernameAsli = $username;
+                $counter = 1;
+
+                while (User::where('username', $username)->exists()) {
+                    $username = $usernameAsli . $counter;
+                    $counter++;
+                }
+
+                /*
+                ============================
+                SIMPAN USER + SISWA
+                ============================
+                */
+                DB::transaction(function () use (
+                    $username,
+                    $namaLengkap,
+                    $nis
+                ) {
+
+                    $user = User::create([
+                        'username' => $username,
+                        'password' => Hash::make($username),
+                        'role' => 'siswa',
+                    ]);
+
+                    DB::table('siswas')->insert([
+                        'user_id' => $user->id,
+                        'nama_siswa' => $namaLengkap,
+                        'nis' => $nis,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                });
+
+                $this->command->info("Created: $username");
+            }
+
+            fclose($handle);
+        }
     }
+
 }
