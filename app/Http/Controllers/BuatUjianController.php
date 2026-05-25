@@ -85,32 +85,33 @@ class BuatUjianController extends Controller
         // Pastikan user adalah siswa sebelum mengecek sertifikat
         if (Auth::user()->role == 'siswa') {
 
-            // 1. Cek Kelulusan Ujian Word (Murni >= 75 ATAU Skor Final >= 75)
+            // 1. Cek Kelulusan Ujian Word (Murni >= 75 ATAU Skor Final IS NOT NULL)
             $lulusWord = DB::table('percobaan_ujians')
                 ->join('ujians', 'percobaan_ujians.ujian_id', '=', 'ujians.id')
                 ->where('percobaan_ujians.user_id', $userId)
+                ->where('percobaan_ujians.status', 'selesai') // Pastikan ujian sudah selesai
                 ->where(function ($query) {
-                    // Mengecek tipe atau judul (sesuaikan dengan kolom database Anda, contoh di bawah menggunakan tipe & judul)
                     $query->where('ujians.tipe', 'word')
                         ->orWhere('ujians.judul', 'like', '%Word%');
                 })
                 ->where(function ($query) {
                     $query->where('percobaan_ujians.skor', '>=', 75)
-                        ->orWhere('percobaan_ujians.skor_final', '>=', 75);
+                        ->orWhereNotNull('percobaan_ujians.skor_final'); // Kolom skor_final asal terisi langsung lulus
                 })
                 ->exists();
 
-            // 2. Cek Kelulusan Ujian Excel (Murni >= 75 ATAU Skor Final >= 75)
+            // 2. Cek Kelulusan Ujian Excel (Murni >= 75 ATAU Skor Final IS NOT NULL)
             $lulusExcel = DB::table('percobaan_ujians')
                 ->join('ujians', 'percobaan_ujians.ujian_id', '=', 'ujians.id')
                 ->where('percobaan_ujians.user_id', $userId)
+                ->where('percobaan_ujians.status', 'selesai') // Pastikan ujian sudah selesai
                 ->where(function ($query) {
                     $query->where('ujians.tipe', 'excel')
                         ->orWhere('ujians.judul', 'like', '%Excel%');
                 })
                 ->where(function ($query) {
                     $query->where('percobaan_ujians.skor', '>=', 75)
-                        ->orWhere('percobaan_ujians.skor_final', '>=', 75);
+                        ->orWhereNotNull('percobaan_ujians.skor_final'); // Kolom skor_final asal terisi langsung lulus
                 })
                 ->exists();
 
@@ -153,15 +154,15 @@ class BuatUjianController extends Controller
         }
 
         // ambil semua ujian
-       $ujians = Ujian::with([
+        $ujians = Ujian::with([
             'pertanyaans',
             'sesiSiswa'
         ])
-        ->withCount([
-            'percobaanUjians as jumlah_percobaan' => function ($q) {
-                $q->where('user_id', Auth::id());
-            }
-        ]);
+            ->withCount([
+                'percobaanUjians as jumlah_percobaan' => function ($q) {
+                    $q->where('user_id', Auth::id());
+                }
+            ]);
 
         if (request()->filled('sesi_id')) {
             $ujians->whereHas('sesiSiswa', function ($q) {
@@ -219,8 +220,8 @@ class BuatUjianController extends Controller
             'user.siswa.kelas',
             'user.siswa.jurusan'
         ])
-        ->where('ujian_id', $ujianId)
-        ->where('status', 'selesai');
+            ->where('ujian_id', $ujianId)
+            ->where('status', 'selesai');
 
         /*
         ==========================
@@ -233,9 +234,8 @@ class BuatUjianController extends Controller
 
                 $q->whereHas('ujianSesi', function ($qq) use ($request, $ujianId) {
                     $qq->where('ujian_id', $ujianId)
-                    ->where('sesi_id', $request->sesi_id);
+                        ->where('sesi_id', $request->sesi_id);
                 });
-
             });
         }
 
@@ -401,7 +401,7 @@ class BuatUjianController extends Controller
                 'kelas' => $siswa->kelas->nama_kelas ?? '-',
                 'nis' => $siswa->nis,
                 'nama' => $siswa->nama_siswa,
-                'nilai' => $sorted->map(fn($x)=>$x->skor_final ?? $x->nilai)->toArray(),
+                'nilai' => $sorted->map(fn($x) => $x->skor_final ?? $x->nilai)->toArray(),
                 'terbaik' => $nilaiTertinggi,
                 'status' => $status
             ]);
@@ -409,9 +409,9 @@ class BuatUjianController extends Controller
 
         $dataList = $dataList->sortBy('nama');
 
-        $filename = 'Laporan-'.$ujian->judul.'-'.now()->format('YmdHi').'.xls';
+        $filename = 'Laporan-' . $ujian->judul . '-' . now()->format('YmdHi') . '.xls';
 
-        return response()->stream(function () use ($dataList,$maxPercobaan,$ujian){
+        return response()->stream(function () use ($dataList, $maxPercobaan, $ujian) {
 
             echo '
             <html><head><meta charset="UTF-8">
@@ -426,8 +426,8 @@ class BuatUjianController extends Controller
                 .belum{color:orange;font-weight:bold;}
             </style></head><body><table>';
 
-            echo '<tr><td colspan="'.(6+$maxPercobaan).'" class="title">
-            LAPORAN UJIAN '.$ujian->judul.'
+            echo '<tr><td colspan="' . (6 + $maxPercobaan) . '" class="title">
+            LAPORAN UJIAN ' . $ujian->judul . '
             </td></tr>';
 
             echo '<tr>
@@ -437,25 +437,25 @@ class BuatUjianController extends Controller
                 <th>NIS</th>
                 <th>Nama</th>';
 
-            for($i=1;$i<=$maxPercobaan;$i++){
+            for ($i = 1; $i <= $maxPercobaan; $i++) {
                 echo "<th>Percobaan $i</th>";
             }
 
             echo '<th>Nilai Terbaik</th><th>Status</th></tr>';
 
-            $no=1;
+            $no = 1;
 
-            foreach($dataList as $d){
+            foreach ($dataList as $d) {
 
                 echo '<tr>';
-                echo '<td>'.$no++.'</td>';
-                echo '<td>'.$d['jurusan'].'</td>';
-                echo '<td>'.$d['kelas'].'</td>';
-                echo '<td>'.$d['nis'].'</td>';
-                echo '<td class="nama">'.$d['nama'].'</td>';
+                echo '<td>' . $no++ . '</td>';
+                echo '<td>' . $d['jurusan'] . '</td>';
+                echo '<td>' . $d['kelas'] . '</td>';
+                echo '<td>' . $d['nis'] . '</td>';
+                echo '<td class="nama">' . $d['nama'] . '</td>';
 
-                for($i=0;$i<$maxPercobaan;$i++){
-                    echo '<td>'.($d['nilai'][$i] ?? '-').'</td>';
+                for ($i = 0; $i < $maxPercobaan; $i++) {
+                    echo '<td>' . ($d['nilai'][$i] ?? '-') . '</td>';
                 }
 
                 $class = strtolower($d['status']) == 'lulus'
@@ -464,16 +464,15 @@ class BuatUjianController extends Controller
                         ? 'remedial'
                         : 'belum');
 
-                echo '<td>'.$d['terbaik'].'</td>';
-                echo '<td class="'.$class.'">'.$d['status'].'</td>';
+                echo '<td>' . $d['terbaik'] . '</td>';
+                echo '<td class="' . $class . '">' . $d['status'] . '</td>';
                 echo '</tr>';
             }
 
             echo '</table></body></html>';
-
-        },200,[
-            'Content-Type'=>'application/vnd.ms-excel',
-            'Content-Disposition'=>"attachment; filename=\"$filename\""
+        }, 200, [
+            'Content-Type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => "attachment; filename=\"$filename\""
         ]);
     }
 
@@ -649,35 +648,35 @@ class BuatUjianController extends Controller
                 $percobaan = $percobaanAll[$siswa->user_id] ?? collect();
 
                 $word = $percobaan
-                    ->filter(fn($p)=>optional($p->ujian)->tipe==='word')
+                    ->filter(fn($p) => optional($p->ujian)->tipe === 'word')
                     ->values();
 
                 $excel = $percobaan
-                    ->filter(fn($p)=>optional($p->ujian)->tipe==='excel')
+                    ->filter(fn($p) => optional($p->ujian)->tipe === 'excel')
                     ->values();
 
                 $sesi = optional($siswa->ujianSesi->first()?->sesi)->no_sesi ?? '-';
 
                 echo '<tr>';
 
-                echo '<td>'.$no++.'</td>';
-                echo '<td>'.$sesi.'</td>';
-                echo '<td>'.optional($siswa->kelas)->nama_kelas.'</td>';
-                echo '<td>'.optional($siswa->jurusan)->nama_jurusan.'</td>';
-                echo '<td>'.$siswa->nis.'</td>';
-                echo '<td class="nama">'.$siswa->nama_siswa.'</td>';
+                echo '<td>' . $no++ . '</td>';
+                echo '<td>' . $sesi . '</td>';
+                echo '<td>' . optional($siswa->kelas)->nama_kelas . '</td>';
+                echo '<td>' . optional($siswa->jurusan)->nama_jurusan . '</td>';
+                echo '<td>' . $siswa->nis . '</td>';
+                echo '<td class="nama">' . $siswa->nama_siswa . '</td>';
 
                 /*
                 WORD
                 */
                 $nilaiWordTertinggi = null;
 
-                for($i=0;$i<3;$i++){
+                for ($i = 0; $i < 3; $i++) {
 
                     $nilai = $word[$i]->skor ?? '-';
 
-                    if(is_numeric($nilai)){
-                        $nilaiWordTertinggi=max($nilaiWordTertinggi ?? 0,$nilai);
+                    if (is_numeric($nilai)) {
+                        $nilaiWordTertinggi = max($nilaiWordTertinggi ?? 0, $nilai);
                     }
 
                     echo "<td>$nilai</td>";
@@ -685,25 +684,25 @@ class BuatUjianController extends Controller
 
                 $bestWord = $word->sortByDesc('skor')->first();
 
-                $markupWord='-';
+                $markupWord = '-';
 
-                if($bestWord && $bestWord->skor < 75){
-                    $markupWord=$bestWord->skor_final ?? '-';
+                if ($bestWord && $bestWord->skor < 75) {
+                    $markupWord = $bestWord->skor_final ?? '-';
 
-                    if(is_numeric($markupWord)){
-                        $nilaiWordTertinggi=max($nilaiWordTertinggi,$markupWord);
+                    if (is_numeric($markupWord)) {
+                        $nilaiWordTertinggi = max($nilaiWordTertinggi, $markupWord);
                     }
                 }
 
-                if(is_null($nilaiWordTertinggi)){
-                    $statusWord='BELUM UJIAN';
-                    $classWord='belum';
-                }elseif($nilaiWordTertinggi>=75){
-                    $statusWord='LULUS';
-                    $classWord='lulus';
-                }else{
-                    $statusWord='REMEDIAL';
-                    $classWord='remedial';
+                if (is_null($nilaiWordTertinggi)) {
+                    $statusWord = 'BELUM UJIAN';
+                    $classWord = 'belum';
+                } elseif ($nilaiWordTertinggi >= 75) {
+                    $statusWord = 'LULUS';
+                    $classWord = 'lulus';
+                } else {
+                    $statusWord = 'REMEDIAL';
+                    $classWord = 'remedial';
                 }
 
                 echo "<td>$markupWord</td>";
@@ -714,12 +713,12 @@ class BuatUjianController extends Controller
                 */
                 $nilaiExcelTertinggi = null;
 
-                for($i=0;$i<3;$i++){
+                for ($i = 0; $i < 3; $i++) {
 
                     $nilai = $excel[$i]->skor ?? '-';
 
-                    if(is_numeric($nilai)){
-                        $nilaiExcelTertinggi = max($nilaiExcelTertinggi ?? 0,$nilai);
+                    if (is_numeric($nilai)) {
+                        $nilaiExcelTertinggi = max($nilaiExcelTertinggi ?? 0, $nilai);
                     }
 
                     echo "<td>$nilai</td>";
@@ -727,13 +726,13 @@ class BuatUjianController extends Controller
 
                 $bestExcel = $excel->sortByDesc('skor')->first();
 
-                $markupExcel='-';
+                $markupExcel = '-';
 
-                if($bestExcel && $bestExcel->skor < 75){
+                if ($bestExcel && $bestExcel->skor < 75) {
 
                     $markupExcel = $bestExcel->skor_final ?? '-';
 
-                    if(is_numeric($markupExcel)){
+                    if (is_numeric($markupExcel)) {
                         $nilaiExcelTertinggi = max(
                             $nilaiExcelTertinggi,
                             $markupExcel
@@ -741,17 +740,15 @@ class BuatUjianController extends Controller
                     }
                 }
 
-                if(is_null($nilaiExcelTertinggi)){
-                    $statusExcel='BELUM UJIAN';
-                    $classExcel='belum';
-
-                }elseif($nilaiExcelTertinggi>=75){
-                    $statusExcel='LULUS';
-                    $classExcel='lulus';
-
-                }else{
-                    $statusExcel='REMEDIAL';
-                    $classExcel='remedial';
+                if (is_null($nilaiExcelTertinggi)) {
+                    $statusExcel = 'BELUM UJIAN';
+                    $classExcel = 'belum';
+                } elseif ($nilaiExcelTertinggi >= 75) {
+                    $statusExcel = 'LULUS';
+                    $classExcel = 'lulus';
+                } else {
+                    $statusExcel = 'REMEDIAL';
+                    $classExcel = 'remedial';
                 }
 
                 echo "<td>$markupExcel</td>";
@@ -759,12 +756,11 @@ class BuatUjianController extends Controller
             }
 
             echo '</table></body></html>';
+        }, 200, [
 
-        },200,[
+            'Content-Type' => 'application/vnd.ms-excel',
 
-            'Content-Type'=>'application/vnd.ms-excel',
-
-            'Content-Disposition'=>"attachment; filename=\"$filename\""
+            'Content-Disposition' => "attachment; filename=\"$filename\""
         ]);
     }
 
@@ -776,20 +772,20 @@ class BuatUjianController extends Controller
             'user.percobaanUjians.ujian'
         ]);
 
-        if($request->kelas_id){
-            $query->where('kelas_id',$request->kelas_id);
+        if ($request->kelas_id) {
+            $query->where('kelas_id', $request->kelas_id);
         }
 
-        if($request->jurusan_id){
-            $query->where('jurusan_id',$request->jurusan_id);
+        if ($request->jurusan_id) {
+            $query->where('jurusan_id', $request->jurusan_id);
         }
 
         $siswas = $query->get()
-            ->sortBy(fn($s)=>strtoupper(trim($s->nama_siswa)));
+            ->sortBy(fn($s) => strtoupper(trim($s->nama_siswa)));
 
-        $filename='Data-Markup-'.now()->format('YmdHi').'.xls';
+        $filename = 'Data-Markup-' . now()->format('YmdHi') . '.xls';
 
-        return response()->stream(function() use($siswas){
+        return response()->stream(function () use ($siswas) {
 
             echo '
             <html><head><meta charset="UTF-8">
@@ -823,65 +819,75 @@ class BuatUjianController extends Controller
                 <th>Status Excel</th>
             </tr>';
 
-            $no=1;
+            $no = 1;
 
-            foreach($siswas as $siswa){
+            foreach ($siswas as $siswa) {
 
                 $percobaan = $siswa->user->percobaanUjians ?? collect();
 
+                // Ambil percobaan ujian yang sudah selesai (agar datanya valid)
                 $word = $percobaan
-                    ->filter(fn($p)=>optional($p->ujian)->tipe=='word')
+                    ->filter(fn($p) => optional($p->ujian)->tipe == 'word' && $p->status == 'selesai')
                     ->sortByDesc('skor')
                     ->first();
 
                 $excel = $percobaan
-                    ->filter(fn($p)=>optional($p->ujian)->tipe=='excel')
+                    ->filter(fn($p) => optional($p->ujian)->tipe == 'excel' && $p->status == 'selesai')
                     ->sortByDesc('skor')
                     ->first();
 
                 $nilaiWord = $word?->skor ?? '-';
                 $markupWord = $word?->skor_final ?? '-';
-                $finalWord = $markupWord!='-' ? $markupWord : $nilaiWord;
 
                 $nilaiExcel = $excel?->skor ?? '-';
                 $markupExcel = $excel?->skor_final ?? '-';
-                $finalExcel = $markupExcel!='-' ? $markupExcel : $nilaiExcel;
 
-                $statusWord = $nilaiWord=='-'
-                    ? 'BELUM UJIAN'
-                    : ($finalWord>=75?'LULUS':'REMEDIAL');
+                // =================================================================
+                // PENYESUAIAN LOGIKA STATUS BARU
+                // =================================================================
 
-                $statusExcel = $nilaiExcel=='-'
-                    ? 'BELUM UJIAN'
-                    : ($finalExcel>=75?'LULUS':'REMEDIAL');
+                // Status Word
+                if ($nilaiWord == '-') {
+                    $statusWord = 'BELUM UJIAN';
+                } else {
+                    // Lulus jika skor murni >= 75 ATAU kolom markup/skor_final terisi (bukan '-')
+                    $statusWord = ($nilaiWord >= 75 || $markupWord != '-') ? 'LULUS' : 'REMEDIAL';
+                }
+
+                // Status Excel
+                if ($nilaiExcel == '-') {
+                    $statusExcel = 'BELUM UJIAN';
+                } else {
+                    // Lulus jika skor murni >= 75 ATAU kolom markup/skor_final terisi (bukan '-')
+                    $statusExcel = ($nilaiExcel >= 75 || $markupExcel != '-') ? 'LULUS' : 'REMEDIAL';
+                }
+                // =================================================================
 
                 echo '<tr>';
 
-                echo '<td>'.$no++.'</td>';
-                echo '<td class="nama">'.$siswa->nama_siswa.'</td>';
-                echo '<td>'.$siswa->nis.'</td>';
-                echo '<td>'.optional($siswa->kelas)->nama_kelas.'</td>';
-                echo '<td>'.optional($siswa->jurusan)->nama_jurusan.'</td>';
+                echo '<td>' . $no++ . '</td>';
+                echo '<td class="nama">' . $siswa->nama_siswa . '</td>';
+                echo '<td>' . $siswa->nis . '</td>';
+                echo '<td>' . optional($siswa->kelas)->nama_kelas . '</td>';
+                echo '<td>' . optional($siswa->jurusan)->nama_jurusan . '</td>';
 
-                echo '<td>'.$nilaiWord.'</td>';
-                echo '<td>'.$markupWord.'</td>';
-                echo '<td>'.$statusWord.'</td>';
+                echo '<td>' . $nilaiWord . '</td>';
+                echo '<td>' . $markupWord . '</td>';
+                echo '<td>' . $statusWord . '</td>';
 
-                echo '<td>'.$nilaiExcel.'</td>';
-                echo '<td>'.$markupExcel.'</td>';
-                echo '<td>'.$statusExcel.'</td>';
+                echo '<td>' . $nilaiExcel . '</td>';
+                echo '<td>' . $markupExcel . '</td>';
+                echo '<td>' . $statusExcel . '</td>';
 
                 echo '</tr>';
             }
 
             echo '</table></body></html>';
-
-        },200,[
-            'Content-Type'=>'application/vnd.ms-excel',
-            'Content-Disposition'=>"attachment; filename=\"$filename\""
+        }, 200, [
+            'Content-Type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => "attachment; filename=\"$filename\""
         ]);
     }
-
     public function markupnilai()
     {
         $siswas = Siswa::with([

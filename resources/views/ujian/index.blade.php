@@ -110,8 +110,9 @@
                         </div>
                         <div>
                             <h6 class="fw-bold mb-1 text-secondary">Sertifikat Masih Terkunci</h6>
-                            <p class="mb-1 text-muted small">Selesaikan kedua ujian (Word & Excel) untuk membuka akses unduh
-                                sertifikat. <span class="fw-bold">Minimal nilai yang didapat > 75</span> </p>
+                            <p class="mb-1 text-muted small">Selesaikan kedua ujian (Word & Excel) dengan <span
+                                    class="fw-bold">nilai murni > 75</span> atau melalui <span class="fw-bold">validasi
+                                    nilai final oleh penguji</span> untuk membuka akses unduh.</p>
                         </div>
                     </div>
                     <button disabled class="btn btn-secondary px-4 text-white disabled">
@@ -120,7 +121,6 @@
                 </div>
             @endif
         @endif
-
         {{-- TABLE --}}
         <div class="card border-0 shadow-sm rounded-3">
 
