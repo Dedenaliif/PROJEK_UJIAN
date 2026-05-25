@@ -221,6 +221,26 @@
                     </div>
 
                     <div class="col-md-3">
+                        <label class="form-label fw-semibold small">
+                            Sesi
+                        </label>
+
+                        <select name="sesi_id" class="form-select">
+
+                            <option value="">Semua</option>
+
+                            @foreach ($listSesi as $s)
+                                <option value="{{ $s->id }}" {{ request('sesi_id') == $s->id ? 'selected' : '' }}>
+
+                                    Sesi {{ $s->no_sesi }}
+
+                                </option>
+                            @endforeach
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
 
                         <div class="d-flex gap-2 mobile-stack">
 
@@ -228,10 +248,9 @@
                                 Cari
                             </button>
 
-                            <a href="{{ route('ujian.report', ['ujian' => $ujian->id]) }}"
-                                class="btn btn-outline-secondary">
+                            <button type="reset" class="btn btn-primary">
                                 Reset
-                            </a>
+                            </button>
 
                         </div>
 

@@ -44,9 +44,23 @@
                                 @endforeach
                             </select>
 
-                            <button class="btn btn-success px-3">
+                            <select name="sesi_id" class="form-select w-auto">
+                                <option value="">Semua Sesi</option>
+
+                                @foreach ($sesis as $item)
+                                    <option value="{{ $item->id }}"
+                                        {{ request('sesi_id') == $item->id ? 'selected' : '' }}>
+                                        Sesi {{ $item->no_sesi }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <button formaction="{{ route('ujian.exportSemuaNilai') }}" class="btn btn-success px-3">
                                 Download Report
                             </button>
+
+                            <button type="reset" class="btn btn-outline-secondary px-3"">Reset</button>
+
                         </form>
 
                         <a href="{{ route('ujian.create') }}" class="btn btn-primary px-4">

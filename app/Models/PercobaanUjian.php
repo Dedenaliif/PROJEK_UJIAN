@@ -38,7 +38,7 @@ class PercobaanUjian extends Model
     {
         return $this->hasMany(Jawaban::class);
     }
-    protected $cast = [
+    protected $casts = [
         'waktu_mulai' => 'datetime',
         'waktu_selesai' => 'datetime',
         // 'skor' => 'float',

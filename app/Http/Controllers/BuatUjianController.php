@@ -153,16 +153,23 @@ class BuatUjianController extends Controller
         }
 
         // ambil semua ujian
-        $ujians = Ujian::with([
+       $ujians = Ujian::with([
             'pertanyaans',
             'sesiSiswa'
         ])
-            ->withCount([
-                'percobaanUjians as jumlah_percobaan' => function ($q) {
-                    $q->where('user_id', Auth::id());
-                }
-            ])
-            ->get();
+        ->withCount([
+            'percobaanUjians as jumlah_percobaan' => function ($q) {
+                $q->where('user_id', Auth::id());
+            }
+        ]);
+
+        if (request()->filled('sesi_id')) {
+            $ujians->whereHas('sesiSiswa', function ($q) {
+                $q->where('sesi_id', request('sesi_id'));
+            });
+        }
+
+        $ujians = $ujians->get();
 
         // data sesi
         $sesis = Sesi::all();
@@ -200,21 +207,40 @@ class BuatUjianController extends Controller
     // ==============================
     // 🔥 REPORT
     // ==============================
-    public function report($ujianId)
+    public function report(Request $request, $ujianId)
     {
         $ujian = Ujian::findOrFail($ujianId);
 
         $listKelas = Kelas::all();
         $listJurusan = Jurusan::all();
-        $data = PercobaanUjian::with([
+        $listSesi = Sesi::all();
+
+        $query = PercobaanUjian::with([
             'user.siswa.kelas',
             'user.siswa.jurusan'
         ])
-            ->where('ujian_id', $ujianId)
-            ->where('status', 'selesai')
-            ->get()
+        ->where('ujian_id', $ujianId)
+        ->where('status', 'selesai');
 
-            // hitung ulang nilai
+        /*
+        ==========================
+        FILTER SESI
+        ==========================
+        */
+        if ($request->filled('sesi_id')) {
+
+            $query->whereHas('user.siswa', function ($q) use ($request, $ujianId) {
+
+                $q->whereHas('ujianSesi', function ($qq) use ($request, $ujianId) {
+                    $qq->where('ujian_id', $ujianId)
+                    ->where('sesi_id', $request->sesi_id);
+                });
+
+            });
+        }
+
+        $data = $query->get()
+
             ->map(function ($item) {
 
                 $hasil = $this->hitungNilai($item);
@@ -225,29 +251,18 @@ class BuatUjianController extends Controller
                 return $item;
             })
 
-            // group berdasarkan user
             ->groupBy('user_id')
+
             ->map(function ($items) {
 
-                // urut berdasarkan nilai tertinggi
                 $sorted = $items->sortByDesc('nilai');
 
-                // ambil nilai terbaik
                 $best = $sorted->first();
 
-                // hitung percobaan ke berapa
                 $percobaanKe = $items
                     ->sortBy('created_at')
                     ->values()
-                    ->search(function ($item) use ($best) {
-                        return $item->id === $best->id;
-                    });
-
-                // simpan info tambahan
-                $best->percobaan_terbaik = $percobaanKe + 1;
-
-                // total percobaan
-                $best->total_percobaan = $items->count();
+                    ->search(fn($x) => $x->id === $best->id);
 
                 $best->percobaan_terbaik = $percobaanKe + 1;
                 $best->total_percobaan = $items->count();
@@ -268,30 +283,46 @@ class BuatUjianController extends Controller
 
                 return $best;
             })
-            // reset collection index
+
             ->values();
-        // FILTER
-        if (request('status') == 'lulus') {
+
+        /*
+        ==========================
+        FILTER STATUS
+        ==========================
+        */
+        if ($request->status == 'lulus') {
             $data = $data->where('nilai', '>=', 75);
-        } elseif (request('status') == 'remedial') {
+        }
+
+        if ($request->status == 'remedial') {
             $data = $data->where('nilai', '<', 75);
         }
 
-        if (request('kelas_id')) {
+        /*
+        ==========================
+        FILTER KELAS
+        ==========================
+        */
+        if ($request->kelas_id) {
             $data = $data->filter(
                 fn($d) =>
-                optional($d->user->siswa)->kelas_id == request('kelas_id')
+                optional($d->user->siswa)->kelas_id == $request->kelas_id
             );
         }
 
-        if (request('jurusan_id')) {
+        /*
+        ==========================
+        FILTER JURUSAN
+        ==========================
+        */
+        if ($request->jurusan_id) {
             $data = $data->filter(
                 fn($d) =>
-                optional($d->user->siswa)->jurusan_id == request('jurusan_id')
+                optional($d->user->siswa)->jurusan_id == $request->jurusan_id
             );
         }
 
-        // STATISTIK
         $totalSiswa = $data->count();
         $lulus = $data->where('nilai', '>=', 75)->count();
         $remedial = $data->where('nilai', '<', 75)->count();
@@ -305,7 +336,8 @@ class BuatUjianController extends Controller
             'remedial',
             'rata',
             'listKelas',
-            'listJurusan'
+            'listJurusan',
+            'listSesi'
         ));
     }
 
@@ -316,149 +348,132 @@ class BuatUjianController extends Controller
     {
         $ujian = Ujian::findOrFail($ujianId);
 
-        // 1. Ambil data percobaan dengan Eager Loading
         $query = PercobaanUjian::with([
             'user.siswa.kelas',
             'user.siswa.jurusan'
         ])->where('ujian_id', $ujianId);
 
-        // Filter Kelas & Jurusan di tingkat Database
         if ($request->filled('kelas_id')) {
             $query->whereHas('user.siswa', function ($q) {
                 $q->where('kelas_id', request('kelas_id'));
             });
         }
+
         if ($request->filled('jurusan_id')) {
             $query->whereHas('user.siswa', function ($q) {
                 $q->where('jurusan_id', request('jurusan_id'));
             });
         }
 
-        $rawPercobaan = $query->get();
-
-        // 2. Hitung nilai aslinya terlebih dahulu lewat fungsi hitungNilai()
-        $rawPercobaan = $rawPercobaan->map(function ($item) {
+        $rawPercobaan = $query->get()->map(function ($item) {
             $hasil = $this->hitungNilai($item);
             $item->nilai = $hasil['nilai'] ?? 0;
-            $item->skor = $hasil['skor'] ?? 0;
             return $item;
         });
 
-        // Filter Status Kelulusan jika ada request (Berdasarkan Nilai Tertinggi Siswa)
-        // Kelompokkan data berdasarkan User ID (Siswa) terlebih dahulu
-        $groupedByUser = $rawPercobaan->groupBy('user_id');
+        $grouped = $rawPercobaan->groupBy('user_id');
 
-        // 3. Proses penyusunan data per siswa & cari tahu jumlah percobaan maksimal
-        $siswaDataList = collect();
+        $dataList = collect();
         $maxPercobaan = 0;
 
-        foreach ($groupedByUser as $userId => $percobaans) {
-            // Urutkan percobaan siswa berdasarkan waktu (tertua ke terbaru)
-            $sortedPercobaans = $percobaans->sortBy('created_at')->values();
+        foreach ($grouped as $userId => $percobaans) {
 
-            // Cari nilai tertinggi dari semua percobaan siswa ini
-            $nilaiTertinggi = $sortedPercobaans->max('nilai');
+            $sorted = $percobaans->sortBy('created_at')->values();
 
-            // Filter status kelulusan di tingkat siswa
-            if (request('status') == 'lulus' && $nilaiTertinggi < 75) {
-                continue;
-            }
-            if (request('status') == 'remedial' && $nilaiTertinggi >= 75) {
-                continue;
-            }
+            $nilaiTertinggi = $sorted->max(function ($p) {
+                return $p->skor_final ?? $p->nilai;
+            });
 
-            // Ambil info siswa dari percobaan pertama
-            $firstPercobaan = $sortedPercobaans->first();
-            $siswa = $firstPercobaan->user->siswa ?? null;
+            if (request('status') == 'lulus' && $nilaiTertinggi < 75) continue;
+            if (request('status') == 'remedial' && $nilaiTertinggi >= 75) continue;
 
+            $siswa = $sorted->first()->user->siswa ?? null;
             if (!$siswa) continue;
 
-            // Catat jumlah percobaan terbanyak untuk header nantinya
-            $maxPercobaan = max($maxPercobaan, $sortedPercobaans->count());
+            $maxPercobaan = max($maxPercobaan, $sorted->count());
 
-            $siswaDataList->push([
+            $status = $sorted->count() == 0
+                ? 'BELUM UJIAN'
+                : ($nilaiTertinggi >= 75 ? 'LULUS' : 'REMEDIAL');
+
+            $dataList->push([
                 'jurusan' => $siswa->jurusan->nama_jurusan ?? '-',
                 'kelas' => $siswa->kelas->nama_kelas ?? '-',
-                'nis' => $siswa->nis ?? '-',
-                'nama' => $siswa->nama_siswa ?? '-',
-                'list_nilai' => $sortedPercobaans->pluck('nilai')->toArray(),
-                'nilai_tertinggi' => $nilaiTertinggi,
-                'status' => $nilaiTertinggi >= 75 ? 'Lulus' : 'Remedial'
+                'nis' => $siswa->nis,
+                'nama' => $siswa->nama_siswa,
+                'nilai' => $sorted->map(fn($x)=>$x->skor_final ?? $x->nilai)->toArray(),
+                'terbaik' => $nilaiTertinggi,
+                'status' => $status
             ]);
         }
 
-        // 4. SORTING AKHIR: Urutkan per Jurusan -> per Kelas -> per Nama Siswa
-        $siswaDataList = $siswaDataList->sortBy([
-            fn($a, $b) => strcmp($a['jurusan'], $b['jurusan']),
-            fn($a, $b) => strcmp($a['kelas'], $b['kelas']),
-            fn($a, $b) => strcmp($a['nama'], $b['nama']),
-        ]);
+        $dataList = $dataList->sortBy('nama');
 
-        // 5. PENAMAAN FILE DINAMIS
-        $stringFilter = str_replace(' ', '-', $ujian->judul);
-        if (request()->filled('kelas_id')) {
-            $kelas = Kelas::find(request('kelas_id'));
-            if ($kelas) {
-                $stringFilter .= '-' . str_replace(' ', '-', $kelas->nama_kelas);
-            }
-        }
-        if (request()->filled('jurusan_id')) {
-            $jurusan = Jurusan::find(request('jurusan_id'));
-            if ($jurusan) {
-                $stringFilter .= '-' . str_replace(' ', '-', $jurusan->nama_jurusan);
-            }
-        }
-        if (request()->filled('status')) {
-            $stringFilter .= '-' . ucfirst(request('status'));
-        }
+        $filename = 'Laporan-'.$ujian->judul.'-'.now()->format('YmdHi').'.xls';
 
-        $filename = "Laporan-{$stringFilter}-" . date('Ymd-Hi') . ".csv";
+        return response()->stream(function () use ($dataList,$maxPercobaan,$ujian){
 
-        // 6. STREAM DOWNLOAD CSV
-        return response()->stream(function () use ($siswaDataList, $maxPercobaan) {
-            $file = fopen('php://output', 'w');
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM
+            echo '
+            <html><head><meta charset="UTF-8">
+            <style>
+                table{border-collapse:collapse;width:100%;font-family:Arial;}
+                th{background:#4472C4;color:white;border:1px solid black;padding:8px;}
+                td{border:1px solid black;padding:6px;text-align:center;}
+                .nama{text-align:left;}
+                .title{font-size:18px;font-weight:bold;text-align:center;padding:14px;}
+                .lulus{color:green;font-weight:bold;}
+                .remedial{color:red;font-weight:bold;}
+                .belum{color:orange;font-weight:bold;}
+            </style></head><body><table>';
 
-            // Bangun Header Dinamis
-            $header = ['No', 'Jurusan', 'Kelas', 'NIS', 'Nama'];
+            echo '<tr><td colspan="'.(6+$maxPercobaan).'" class="title">
+            LAPORAN UJIAN '.$ujian->judul.'
+            </td></tr>';
 
-            // Buat kolom percobaan sebanyak percobaan terbanyak (misal: P1, P2, P3)
-            for ($i = 1; $i <= $maxPercobaan; $i++) {
-                $header[] = "Percobaan $i";
+            echo '<tr>
+                <th>No</th>
+                <th>Jurusan</th>
+                <th>Kelas</th>
+                <th>NIS</th>
+                <th>Nama</th>';
+
+            for($i=1;$i<=$maxPercobaan;$i++){
+                echo "<th>Percobaan $i</th>";
             }
 
-            $header[] = "Nilai Terbaik";
-            $header[] = "Status";
+            echo '<th>Nilai Terbaik</th><th>Status</th></tr>';
 
-            fputcsv($file, $header, ';');
+            $no=1;
 
-            // Tulis baris data siswa
-            $no = 1;
-            foreach ($siswaDataList as $data) {
-                $row = [
-                    $no++,
-                    $data['jurusan'],
-                    $data['kelas'],
-                    $data['nis'],
-                    $data['nama'],
-                ];
+            foreach($dataList as $d){
 
-                // Isi nilai tiap percobaan kesamping
-                for ($i = 0; $i < $maxPercobaan; $i++) {
-                    // Jika siswa punya nilai di percobaan ke-i, masukkan nilainya. Jika tidak, beri tanda '-'
-                    $row[] = isset($data['list_nilai'][$i]) ? $data['list_nilai'][$i] : '-';
+                echo '<tr>';
+                echo '<td>'.$no++.'</td>';
+                echo '<td>'.$d['jurusan'].'</td>';
+                echo '<td>'.$d['kelas'].'</td>';
+                echo '<td>'.$d['nis'].'</td>';
+                echo '<td class="nama">'.$d['nama'].'</td>';
+
+                for($i=0;$i<$maxPercobaan;$i++){
+                    echo '<td>'.($d['nilai'][$i] ?? '-').'</td>';
                 }
 
-                $row[] = $data['nilai_tertinggi'];
-                $row[] = $data['status'];
+                $class = strtolower($d['status']) == 'lulus'
+                    ? 'lulus'
+                    : (strtolower($d['status']) == 'remedial'
+                        ? 'remedial'
+                        : 'belum');
 
-                fputcsv($file, $row, ';');
+                echo '<td>'.$d['terbaik'].'</td>';
+                echo '<td class="'.$class.'">'.$d['status'].'</td>';
+                echo '</tr>';
             }
 
-            fclose($file);
-        }, 200, [
-            "Content-Type" => "text/csv",
-            "Content-Disposition" => "attachment; filename=\"$filename\"",
+            echo '</table></body></html>';
+
+        },200,[
+            'Content-Type'=>'application/vnd.ms-excel',
+            'Content-Disposition'=>"attachment; filename=\"$filename\""
         ]);
     }
 
@@ -519,177 +534,230 @@ class BuatUjianController extends Controller
 
     public function exportSemuaNilai(Request $request)
     {
-        // ==========================================
-        // 1. QUERY + FILTER (Eager Loading dioptimalkan)
-        // ==========================================
         $query = Siswa::with([
             'kelas',
-            'jurusan',
-            'user.percobaanUjians.ujian'
+            'jurusan'
         ]);
-        $stringFilter = 'Semua';
 
-        if ($request->filled('kelas_id')) {
+        if ($request->kelas_id) {
             $query->where('kelas_id', $request->kelas_id);
-
-            // Ambil data kelas untuk nama file
-            $kelas = Kelas::find($request->kelas_id);
-            if ($kelas) {
-                $stringFilter = $kelas->nama_kelas;
-            }
         }
 
-        if ($request->filled('jurusan_id')) {
+        if ($request->jurusan_id) {
             $query->where('jurusan_id', $request->jurusan_id);
-
-            // Ambil data jurusan untuk nama file
-            $jurusan = Jurusan::find($request->jurusan_id);
-            if ($jurusan) {
-                // Jika kelas juga dipilih, gabungkan namanya. Jika tidak, pakai nama jurusan saja.
-                $stringFilter = $request->filled('kelas_id')
-                    ? $stringFilter . '-' . $jurusan->nama_jurusan
-                    : $jurusan->nama_jurusan;
-            }
         }
 
-        // Bersihkan nama file dari karakter yang dilarang oleh sistem OS (seperti / \ ? * : " < > |) dan spasi
-        $slugFilter = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|', ' '], '-', $stringFilter);
-
-        // Hasilnya akan seperti: Laporan-Ujian-10-RPL-20260523-1726.csv
-        $filename = "Laporan-Ujian-{$slugFilter}-" . date('Ymd-Hi') . ".csv";
-
-        // Ambil data dari database
-        $siswas = $query->get();
-
-        // ==========================================
-        // 2. HITUNG MAKSIMAL KOLOM DYNAMIC (Word & Excel)
-        // ==========================================
-        $maxWord = 0;
-        $maxExcel = 0;
-
-        foreach ($siswas as $siswa) {
-            $percobaan = $siswa->user->percobaanUjians ?? collect();
-
-            $wordCount = $percobaan->filter(fn($p) => strtolower(optional($p->ujian)->tipe) == 'word')->count();
-            $excelCount = $percobaan->filter(fn($p) => strtolower(optional($p->ujian)->tipe) == 'excel')->count();
-
-            $maxWord = max($maxWord, $wordCount);
-            $maxExcel = max($maxExcel, $excelCount);
+        /*
+        =============================
+        FILTER SESI
+        =============================
+        */
+        if ($request->sesi_id) {
+            $query->whereHas('ujianSesi', function ($q) use ($request) {
+                $q->where('sesi_id', $request->sesi_id);
+            });
         }
 
-        // ==========================================
-        // 3. SORTING DATA SECARA KONSISTEN
-        // ==========================================
-        // Di-sort berdasarkan Kelas, lalu Jurusan, lalu Nama Siswa
-        $siswas = $siswas->sortBy([
-            fn($a, $b) => strcmp(optional($a->kelas)->nama_kelas ?? '', optional($b->kelas)->nama_kelas ?? ''),
-            fn($a, $b) => strcmp(optional($a->jurusan)->nama_jurusan ?? '', optional($b->jurusan)->nama_jurusan ?? ''),
-            fn($a, $b) => strcmp($a->nama_siswa ?? '', $b->nama_siswa ?? '')
-        ]);
+        $siswas = $query->get()
+            ->unique('user_id')
+            ->sortBy(fn($s) => strtoupper(trim($s->nama_siswa)))
+            ->values();
 
-        // $filename = "Laporan-Semua-Ujian-" . $jurusan->nama_jurusan . date('Ymd-Hi') . ".csv";
+        $percobaanAll = PercobaanUjian::with('ujian')
+            ->whereIn('user_id', $siswas->pluck('user_id'))
+            ->orderBy('percobaan_ke')
+            ->get()
+            ->groupBy('user_id');
 
-        // ==========================================
-        // 4. STREAM DOWNLOAD CSV
-        // ==========================================
-        return response()->stream(function () use ($siswas, $maxWord, $maxExcel) {
-            $file = fopen('php://output', 'w');
+        $filename = "Laporan-Semua-Nilai-" . now()->format('Ymd-His') . ".xls";
 
-            // UTF-8 BOM agar Excel langsung membaca karakter spesial & pemisah dengan benar
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+        return response()->stream(function () use ($siswas, $percobaanAll) {
 
-            // Buat Struktur Header yang Konsisten
-            $header = [
-                'No',
-                'Kelas',
-                'Jurusan',
-                'NIS',
-                'Nama Siswa'
-            ];
+            echo '
+            <html>
+            <head>
+            <meta charset="UTF-8">
+            <style>
+                table{
+                    border-collapse:collapse;
+                    width:100%;
+                    font-family:Arial;
+                }
 
-            // Header Dynamic Word
-            for ($i = 1; $i <= $maxWord; $i++) {
-                $header[] = "Word Tes $i";
-            }
-            $header[] = "Status Word";
+                th{
+                    background:#4472C4;
+                    color:#fff;
+                    border:1px solid #000;
+                    padding:8px;
+                    text-align:center;
+                }
 
-            // Header Dynamic Excel
-            for ($i = 1; $i <= $maxExcel; $i++) {
-                $header[] = "Excel Tes $i";
-            }
-            $header[] = "Status Excel";
+                td{
+                    border:1px solid #000;
+                    padding:6px;
+                    text-align:center;
+                }
 
-            // Tulis header ke file csv (Rekomendasi gunakan koma ',' agar standar, atau tetap ';' jika regional komputer Indonesia)
-            fputcsv($file, $header, ';');
+                .nama{text-align:left;}
+                .title{
+                    font-size:18px;
+                    font-weight:bold;
+                    text-align:center;
+                    padding:14px;
+                    background:#D9E2F3;
+                }
 
-            // Tulis Data Siswa
+                .lulus{color:green;font-weight:bold;}
+                .remedial{color:red;font-weight:bold;}
+                .belum{color:gray;font-weight:bold;}
+            </style>
+            </head>
+            <body>
+            <table>';
+
+            echo '
+            <tr>
+                <td colspan="14" class="title">
+                    LAPORAN NILAI SEMUA SISWA
+                </td>
+            </tr>';
+
+            echo '
+            <tr>
+                <th>No</th>
+                <th>Sesi</th>
+                <th>Kelas</th>
+                <th>Jurusan</th>
+                <th>NIS</th>
+                <th>Nama</th>
+                <th>Word 1</th>
+                <th>Word 2</th>
+                <th>Word 3</th>
+                <th>Markup Word</th>
+                <th>Status Word</th>
+                <th>Excel Best</th>
+                <th>Markup Excel</th>
+                <th>Status Excel</th>
+            </tr>';
+
             $no = 1;
+
             foreach ($siswas as $siswa) {
-                $percobaan = $siswa->user->percobaanUjians ?? collect();
 
-                // Filter & Sort Ujian Word
+                $percobaan = $percobaanAll[$siswa->user_id] ?? collect();
+
                 $word = $percobaan
-                    ->filter(fn($p) => strtolower(optional($p->ujian)->tipe) == 'word')
-                    ->sortBy('created_at')
+                    ->filter(fn($p)=>optional($p->ujian)->tipe==='word')
                     ->values();
 
-                // Filter & Sort Ujian Excel
                 $excel = $percobaan
-                    ->filter(fn($p) => strtolower(optional($p->ujian)->tipe) == 'excel')
-                    ->sortBy('created_at')
+                    ->filter(fn($p)=>optional($p->ujian)->tipe==='excel')
                     ->values();
 
-                // Set Data Profil Utama di Depan
-                $row = [
-                    $no++,
-                    optional($siswa->kelas)->nama_kelas ?? '-',
-                    optional($siswa->jurusan)->nama_jurusan ?? '-',
-                    $siswa->nis,
-                    $siswa->nama_siswa,
-                ];
+                $sesi = optional($siswa->ujianSesi->first()?->sesi)->no_sesi ?? '-';
 
-                // --- PROSES NILAI WORD ---
-                $nilaiWordList = [];
-                for ($i = 0; $i < $maxWord; $i++) {
-                    $nilai = isset($word[$i]) ? $word[$i]->skor : null;
-                    $nilaiWordList[] = $nilai;
-                    $row[] = $nilai ?? '-';
+                echo '<tr>';
+
+                echo '<td>'.$no++.'</td>';
+                echo '<td>'.$sesi.'</td>';
+                echo '<td>'.optional($siswa->kelas)->nama_kelas.'</td>';
+                echo '<td>'.optional($siswa->jurusan)->nama_jurusan.'</td>';
+                echo '<td>'.$siswa->nis.'</td>';
+                echo '<td class="nama">'.$siswa->nama_siswa.'</td>';
+
+                /*
+                WORD
+                */
+                $nilaiWordTertinggi = null;
+
+                for($i=0;$i<3;$i++){
+
+                    $nilai = $word[$i]->skor ?? '-';
+
+                    if(is_numeric($nilai)){
+                        $nilaiWordTertinggi=max($nilaiWordTertinggi ?? 0,$nilai);
+                    }
+
+                    echo "<td>$nilai</td>";
                 }
 
-                $nilaiTerbesarWord = collect($nilaiWordList)->filter(fn($v) => !is_null($v))->max();
-                if ($nilaiTerbesarWord === null) {
-                    $statusWord = 'Belum Ujian';
-                } else {
-                    $statusWord = $nilaiTerbesarWord >= 75 ? 'Lulus' : 'Remedial';
-                }
-                $row[] = $statusWord;
+                $bestWord = $word->sortByDesc('skor')->first();
 
-                // --- PROSES NILAI EXCEL ---
-                $nilaiExcelList = [];
-                for ($i = 0; $i < $maxExcel; $i++) {
-                    $nilai = isset($excel[$i]) ? $excel[$i]->skor : null;
-                    $nilaiExcelList[] = $nilai;
-                    $row[] = $nilai ?? '-';
+                $markupWord='-';
+
+                if($bestWord && $bestWord->skor < 75){
+                    $markupWord=$bestWord->skor_final ?? '-';
+
+                    if(is_numeric($markupWord)){
+                        $nilaiWordTertinggi=max($nilaiWordTertinggi,$markupWord);
+                    }
                 }
 
-                $nilaiTerbesarExcel = collect($nilaiExcelList)->filter(fn($v) => !is_null($v))->max();
-                if ($nilaiTerbesarExcel === null) {
-                    $statusExcel = 'Belum Ujian';
-                } else {
-                    $statusExcel = $nilaiTerbesarExcel >= 75 ? 'Lulus' : 'Remedial';
+                if(is_null($nilaiWordTertinggi)){
+                    $statusWord='BELUM UJIAN';
+                    $classWord='belum';
+                }elseif($nilaiWordTertinggi>=75){
+                    $statusWord='LULUS';
+                    $classWord='lulus';
+                }else{
+                    $statusWord='REMEDIAL';
+                    $classWord='remedial';
                 }
-                $row[] = $statusExcel;
 
-                // Tulis baris data siswa ke CSV
-                fputcsv($file, $row, ';');
+                echo "<td>$markupWord</td>";
+                echo "<td class='$classWord'>$statusWord</td>";
+
+                /*
+                EXCEL
+                */
+                $bestExcel=$excel->sortByDesc('skor')->first();
+
+                $nilaiExcelTertinggi=null;
+                $nilaiExcel=$bestExcel->skor ?? '-';
+
+                if(is_numeric($nilaiExcel)){
+                    $nilaiExcelTertinggi=$nilaiExcel;
+                }
+
+                echo "<td>$nilaiExcel</td>";
+
+                $markupExcel='-';
+
+                if($bestExcel && $bestExcel->skor <75){
+                    $markupExcel=$bestExcel->skor_final ?? '-';
+
+                    if(is_numeric($markupExcel)){
+                        $nilaiExcelTertinggi=max($nilaiExcelTertinggi,$markupExcel);
+                    }
+                }
+
+                if(is_null($nilaiExcelTertinggi)){
+                    $statusExcel='BELUM UJIAN';
+                    $classExcel='belum';
+                }elseif($nilaiExcelTertinggi>=75){
+                    $statusExcel='LULUS';
+                    $classExcel='lulus';
+                }else{
+                    $statusExcel='REMEDIAL';
+                    $classExcel='remedial';
+                }
+
+                echo "<td>$markupExcel</td>";
+                echo "<td class='$classExcel'>$statusExcel</td>";
+
+                echo '</tr>';
             }
 
-            fclose($file);
-        }, 200, [
-            "Content-Type" => "text/csv",
-            "Content-Disposition" => "attachment; filename=\"$filename\"",
+            echo '</table></body></html>';
+
+        },200,[
+
+            'Content-Type'=>'application/vnd.ms-excel',
+
+            'Content-Disposition'=>"attachment; filename=\"$filename\""
         ]);
     }
+
     public function exportDataMarkup(Request $request)
     {
         $query = Siswa::with([
@@ -698,114 +766,109 @@ class BuatUjianController extends Controller
             'user.percobaanUjians.ujian'
         ]);
 
-        // =========================
-        // FILTER KELAS
-        // =========================
-        if ($request->kelas_id) {
-
-            $query->where(
-                'kelas_id',
-                $request->kelas_id
-            );
+        if($request->kelas_id){
+            $query->where('kelas_id',$request->kelas_id);
         }
 
-        // =========================
-        // FILTER JURUSAN
-        // =========================
-        if ($request->jurusan_id) {
-
-            $query->where(
-                'jurusan_id',
-                $request->jurusan_id
-            );
+        if($request->jurusan_id){
+            $query->where('jurusan_id',$request->jurusan_id);
         }
 
-        $siswas = $query->get();
+        $siswas = $query->get()
+            ->sortBy(fn($s)=>strtoupper(trim($s->nama_siswa)));
 
-        $filename = 'Data-Markup-' . now()->format('Ymd-His') . '.csv';
+        $filename='Data-Markup-'.now()->format('YmdHi').'.xls';
 
-        return response()->stream(function () use ($siswas) {
+        return response()->stream(function() use($siswas){
 
-            $file = fopen('php://output', 'w');
+            echo '
+            <html><head><meta charset="UTF-8">
+            <style>
+                table{border-collapse:collapse;width:100%;font-family:Arial;}
+                th{background:#4472C4;color:white;border:1px solid black;padding:8px;}
+                td{border:1px solid black;padding:6px;text-align:center;}
+                .nama{text-align:left;}
+                .title{font-size:18px;font-weight:bold;text-align:center;padding:14px;}
+                .lulus{color:green;font-weight:bold;}
+                .remedial{color:red;font-weight:bold;}
+                .belum{color:orange;font-weight:bold;}
+            </style></head><body><table>';
 
-            // UTF-8 BOM
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            echo '<tr><td colspan="11" class="title">
+            DATA MARKUP NILAI SISWA
+            </td></tr>';
 
-            // =========================
-            // HEADER
-            // =========================
-            fputcsv($file, [
-                'No',
-                'Nama',
-                'NIS',
-                'Kelas',
-                'Jurusan',
-                'Nilai Word',
-                'Markup Word',
-                'Nilai Excel',
-                'Markup Excel',
-            ], ';');
+            echo '
+            <tr>
+                <th>No</th>
+                <th>Nama</th>
+                <th>NIS</th>
+                <th>Kelas</th>
+                <th>Jurusan</th>
+                <th>Nilai Word</th>
+                <th>Markup Word</th>
+                <th>Status Word</th>
+                <th>Nilai Excel</th>
+                <th>Markup Excel</th>
+                <th>Status Excel</th>
+            </tr>';
 
-            $no = 1;
+            $no=1;
 
-            foreach ($siswas as $siswa) {
+            foreach($siswas as $siswa){
 
                 $percobaan = $siswa->user->percobaanUjians ?? collect();
 
-                // =========================
-                // WORD TERBESAR
-                // =========================
-                $wordTerbesar = $percobaan
-                    ->filter(
-                        fn($p) =>
-                        strtolower(optional($p->ujian)->tipe) == 'word'
-                    )
+                $word = $percobaan
+                    ->filter(fn($p)=>optional($p->ujian)->tipe=='word')
                     ->sortByDesc('skor')
                     ->first();
 
-                // =========================
-                // EXCEL TERBESAR
-                // =========================
-                $excelTerbesar = $percobaan
-                    ->filter(
-                        fn($p) =>
-                        strtolower(optional($p->ujian)->tipe) == 'excel'
-                    )
+                $excel = $percobaan
+                    ->filter(fn($p)=>optional($p->ujian)->tipe=='excel')
                     ->sortByDesc('skor')
                     ->first();
 
-                fputcsv($file, [
+                $nilaiWord = $word?->skor ?? '-';
+                $markupWord = $word?->skor_final ?? '-';
+                $finalWord = $markupWord!='-' ? $markupWord : $nilaiWord;
 
-                    $no++,
+                $nilaiExcel = $excel?->skor ?? '-';
+                $markupExcel = $excel?->skor_final ?? '-';
+                $finalExcel = $markupExcel!='-' ? $markupExcel : $nilaiExcel;
 
-                    $siswa->nama_siswa,
+                $statusWord = $nilaiWord=='-'
+                    ? 'BELUM UJIAN'
+                    : ($finalWord>=75?'LULUS':'REMEDIAL');
 
-                    $siswa->nis,
+                $statusExcel = $nilaiExcel=='-'
+                    ? 'BELUM UJIAN'
+                    : ($finalExcel>=75?'LULUS':'REMEDIAL');
 
-                    optional($siswa->kelas)->nama_kelas,
+                echo '<tr>';
 
-                    optional($siswa->jurusan)->nama_jurusan,
+                echo '<td>'.$no++.'</td>';
+                echo '<td class="nama">'.$siswa->nama_siswa.'</td>';
+                echo '<td>'.$siswa->nis.'</td>';
+                echo '<td>'.optional($siswa->kelas)->nama_kelas.'</td>';
+                echo '<td>'.optional($siswa->jurusan)->nama_jurusan.'</td>';
 
-                    // nilai asli word
-                    $wordTerbesar?->skor ?? '-',
+                echo '<td>'.$nilaiWord.'</td>';
+                echo '<td>'.$markupWord.'</td>';
+                echo '<td>'.$statusWord.'</td>';
 
-                    // markup/final word
-                    $wordTerbesar?->skor_final ?? '-',
+                echo '<td>'.$nilaiExcel.'</td>';
+                echo '<td>'.$markupExcel.'</td>';
+                echo '<td>'.$statusExcel.'</td>';
 
-                    // nilai asli excel
-                    $excelTerbesar?->skor ?? '-',
-
-                    // markup/final excel
-                    $excelTerbesar?->skor_final ?? '-',
-
-                ], ';');
+                echo '</tr>';
             }
 
-            fclose($file);
-        }, 200, [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' =>
-            "attachment; filename=\"$filename\"",
+            echo '</table></body></html>';
+
+        },200,[
+            'Content-Type'=>'application/vnd.ms-excel',
+            'Content-Disposition'=>"attachment; filename=\"$filename\""
         ]);
     }
 

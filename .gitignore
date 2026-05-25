@@ -22,3 +22,8 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# allow templates
+!storage/app/
+!storage/app/templates/
+!storage/app/templates/*
