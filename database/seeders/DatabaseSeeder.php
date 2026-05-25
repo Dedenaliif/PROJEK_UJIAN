@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
             PertanyaanSeeder::class,
             SiswaSeeder::class,
             SesiSeeder::class,
-            DemoUjianSeeder::class
+            // DemoUjianSeeder::class
         ]);
         // User::factory()->create([
         //     'name' => 'Test User',
