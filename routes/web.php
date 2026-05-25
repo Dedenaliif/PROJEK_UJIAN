@@ -14,6 +14,7 @@ use App\Http\Controllers\{
     SiswaController,
     KelasController,
     JurusanController,
+    SertifikatController,
     SesiController,
     UjianStartController
 };
@@ -106,6 +107,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/ujian/sesi/simpan', [BuatUjianController::class, 'simpanSesi'])->name('ujian.sesi.simpan');
         Route::get('/markupnilai', [BuatUjianController::class, 'markupnilai'])->name('markup.nilai');
         Route::get('/ujian/exportDataMarkup', [BuatUjianController::class, 'exportDataMarkup'])->name('ujian.exportDataMarkup');
+        Route::get('/sertifikat/downloadsemua', [SertifikatController::class, 'downloadSemuaSertifikat'])->name('downloadsemua');
     });
 
     /*
@@ -130,7 +132,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/ujian/{ujian}', [HalamanUjianController::class, 'show'])->name('ujianstart.show');
         Route::post('/ujian/{ujian}/save', [HalamanUjianController::class, 'save'])->name('ujianstart.save');
         Route::post('/ujian/{ujian}/selesai', [HalamanUjianController::class, 'selesai'])->name('ujianstart.selesai');
-
+        Route::get('/sertifikat/{id}/download', [SertifikatController::class, 'layoutDummy']);
         // hasil ujian
         Route::get('/ujian/{ujian}/hasil', [HalamanUjianController::class, 'hasil'])->name('ujian.hasil');
 
@@ -138,15 +140,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/cek-status-ujian', [BuatUjianController::class, 'checkStatus'])->name('ujian.cekStatus');
 
         // latihan Ujian
-        Route::post('/ujian/{id}/latihan-start',[UjianStartController::class,'latihanStart'])->name('ujian.latihan.start');
-        Route::get('/ujian/{id}/latihan',[UjianStartController::class,'latihanShow'])->name('ujian.latihan.show');
-        Route::post('/ujian/{id}/latihan-save',[UjianStartController::class,'latihanSave'])->name('ujian.latihan.save');
-        Route::post('/ujian/{id}/latihan-selesai',[UjianStartController::class,'latihanSelesai'])->name('ujian.latihan.selesai');
-        Route::post('/latihan-selesai/{id}',[UjianStartController::class,'latihanSelesai'])->name('ujianstart.latihanSelesai');
-        Route::get('/ujian/{id}/latihan-hasil',[UjianStartController::class,'hasilLatihan'])->name('ujian.latihan.hasil');
-        Route::get('/latihan-check',[BuatUjianController::class,'checkLatihan'])->name('latihan.check');
-
-        });
+        Route::post('/ujian/{id}/latihan-start', [UjianStartController::class, 'latihanStart'])->name('ujian.latihan.start');
+        Route::get('/ujian/{id}/latihan', [UjianStartController::class, 'latihanShow'])->name('ujian.latihan.show');
+        Route::post('/ujian/{id}/latihan-save', [UjianStartController::class, 'latihanSave'])->name('ujian.latihan.save');
+        Route::post('/ujian/{id}/latihan-selesai', [UjianStartController::class, 'latihanSelesai'])->name('ujian.latihan.selesai');
+        Route::post('/latihan-selesai/{id}', [UjianStartController::class, 'latihanSelesai'])->name('ujianstart.latihanSelesai');
+        Route::get('/ujian/{id}/latihan-hasil', [UjianStartController::class, 'hasilLatihan'])->name('ujian.latihan.hasil');
+        Route::get('/latihan-check', [BuatUjianController::class, 'checkLatihan'])->name('latihan.check');
+    });
 
     /*
                     |--------------------------------------------------------------------------

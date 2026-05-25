@@ -14,6 +14,7 @@ use App\Models\UjianSiswaSesi;
 use App\Models\Sesi;
 use App\Models\Siswa;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BuatUjianController extends Controller
 {
@@ -78,6 +79,44 @@ class BuatUjianController extends Controller
     // ==============================
     public function index()
     {
+        $userId = Auth::id();
+        $bisaDownloadSertifikat = false;
+
+        // Pastikan user adalah siswa sebelum mengecek sertifikat
+        if (Auth::user()->role == 'siswa') {
+
+            // 1. Cek Kelulusan Ujian Word (Murni >= 75 ATAU Skor Final >= 75)
+            $lulusWord = DB::table('percobaan_ujians')
+                ->join('ujians', 'percobaan_ujians.ujian_id', '=', 'ujians.id')
+                ->where('percobaan_ujians.user_id', $userId)
+                ->where(function ($query) {
+                    // Mengecek tipe atau judul (sesuaikan dengan kolom database Anda, contoh di bawah menggunakan tipe & judul)
+                    $query->where('ujians.tipe', 'word')
+                        ->orWhere('ujians.judul', 'like', '%Word%');
+                })
+                ->where(function ($query) {
+                    $query->where('percobaan_ujians.skor', '>=', 75)
+                        ->orWhere('percobaan_ujians.skor_final', '>=', 75);
+                })
+                ->exists();
+
+            // 2. Cek Kelulusan Ujian Excel (Murni >= 75 ATAU Skor Final >= 75)
+            $lulusExcel = DB::table('percobaan_ujians')
+                ->join('ujians', 'percobaan_ujians.ujian_id', '=', 'ujians.id')
+                ->where('percobaan_ujians.user_id', $userId)
+                ->where(function ($query) {
+                    $query->where('ujians.tipe', 'excel')
+                        ->orWhere('ujians.judul', 'like', '%Excel%');
+                })
+                ->where(function ($query) {
+                    $query->where('percobaan_ujians.skor', '>=', 75)
+                        ->orWhere('percobaan_ujians.skor_final', '>=', 75);
+                })
+                ->exists();
+
+            // Tombol unlock HANYA JIKA kedua ujian lulus/terpenuhi nilainya
+            $bisaDownloadSertifikat = $lulusWord && $lulusExcel;
+        }
         $kelas = Kelas::all();
         $jurusan = Jurusan::all();
         // cek ujian aktif siswa
@@ -154,6 +193,7 @@ class BuatUjianController extends Controller
             'sesiSaya',
             'kelas',
             'jurusan',
+            'bisaDownloadSertifikat',
         ));
     }
 
@@ -272,7 +312,7 @@ class BuatUjianController extends Controller
     // ==============================
     // 🔥 EXPORT CSV
     // ==============================
-    public function exportCsv($ujianId)
+    public function exportCsv(Request $request, $ujianId)
     {
         $ujian = Ujian::findOrFail($ujianId);
 
@@ -283,12 +323,12 @@ class BuatUjianController extends Controller
         ])->where('ujian_id', $ujianId);
 
         // Filter Kelas & Jurusan di tingkat Database
-        if (request()->filled('kelas_id')) {
+        if ($request->filled('kelas_id')) {
             $query->whereHas('user.siswa', function ($q) {
                 $q->where('kelas_id', request('kelas_id'));
             });
         }
-        if (request()->filled('jurusan_id')) {
+        if ($request->filled('jurusan_id')) {
             $query->whereHas('user.siswa', function ($q) {
                 $q->where('jurusan_id', request('jurusan_id'));
             });
@@ -569,13 +609,13 @@ class BuatUjianController extends Controller
 
             // Header Dynamic Word
             for ($i = 1; $i <= $maxWord; $i++) {
-                $header[] = "Word Percobaan $i";
+                $header[] = "Word Tes $i";
             }
             $header[] = "Status Word";
 
             // Header Dynamic Excel
             for ($i = 1; $i <= $maxExcel; $i++) {
-                $header[] = "Excel Percobaan $i";
+                $header[] = "Excel Tes $i";
             }
             $header[] = "Status Excel";
 
@@ -872,5 +912,4 @@ class BuatUjianController extends Controller
 
         return redirect()->route('siswa.ujian');
     }
-
 }

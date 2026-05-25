@@ -10,6 +10,8 @@
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "realrashid/sweet-alert": "^7.3",
+        "setasign/fpdf": "^1.8",
+        "setasign/fpdi": "^2.6",
         "sweetalert2/laravel": "^1.4"
     },
     "require-dev": {

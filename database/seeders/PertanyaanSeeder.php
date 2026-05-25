@@ -362,7 +362,7 @@ class PertanyaanSeeder extends Seeder
                         'jawaban' => 'A'
                     ],
                     [
-                        'text' => '] Untuk mencari harga barang berdasarkan kode produk dari tabel referensi, fungsi yang umum digunakan adalah ...',
+                        'text' => 'Untuk mencari harga barang berdasarkan kode produk dari tabel referensi, fungsi yang umum digunakan adalah ...',
                         'a' => 'AVERAGE',
                         'b' => 'NOW',
                         'c' => 'VLOOKUP atau XLOOKUP',

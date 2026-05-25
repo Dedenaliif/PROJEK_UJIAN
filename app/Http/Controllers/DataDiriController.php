@@ -46,11 +46,11 @@ class DataDiriController extends Controller
             [
                 'nama_siswa' => $request->nama_siswa,
                 'nis' => $request->nis,
-                'kelas_id' =>$siswa && $siswa->kelas_id ? $siswa->kelas_id : $request->kelas,
-                'jurusan_id' => $siswa && $siswa->kelas_id ? $siswa->jurusan_id : $request->jurusan,
-                'no_hp' =>  $request->no_hp,
-                'email' => $request->email,
-                'nik' => $request->nik,
+                'kelas_id' =>$request->kelas ?? ($siswa->kelas_id),
+                'jurusan_id' => $request->jurusan ?? ($siswa->jurusan_id),
+                'no_hp' =>  $request->no_hp ?? ($siswa->no_hp),
+                'email' => $request->email ?? ($siswa->email),
+                'nik' => $request->nik ?? ($siswa->nik),
             ]
         );
 

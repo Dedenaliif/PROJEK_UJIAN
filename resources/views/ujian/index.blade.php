@@ -58,7 +58,54 @@
 
             </div>
         </div>
-
+        {{-- NOTIFIKASI DOWNLOAD SERTIFIKAT KHUSUS SISWA --}}
+        @if (auth()->user()->role == 'penguji')
+            <a href="{{ route('downloadsemua') }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm mb-4">
+                <i class="bx bx-file-blank fs-4"></i> Download Semua Sertifikat (.ZIP)
+            </a>
+        @endif
+        @if (auth()->user()->role == 'siswa')
+            @if (isset($bisaDownloadSertifikat) && $bisaDownloadSertifikat)
+                <div
+                    class="alert alert-success d-flex justify-content-between align-items-center p-4 mb-4 border-0 shadow-sm rounded-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="avatar flex-shrink-0">
+                            <span class="avatar-initial rounded bg-label-success p-2">
+                                <i class="bx bx-award fs-3"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <h5 class="alert-heading fw-bold mb-1 text-success">Selamat! Sertifikat Anda Tersedia</h5>
+                            <p class="mb-0 text-muted small">Anda telah menyelesaikan seluruh rangkaian ujian dengan baik.
+                                Silakan unduh sertifikat resmi Anda.</p>
+                        </div>
+                    </div>
+                    <a href="{{ url('siswa/sertifikat/' . auth()->user()->siswa->id . '/download') }}" target="_blank"
+                        class="btn btn-success px-4 shadow-sm d-flex align-items-center gap-2">
+                        <i class="bx bx-download fs-5"></i> Unduh Sertifikat
+                    </a>
+                </div>
+            @else
+                <div
+                    class="alert alert-light d-flex justify-content-between align-items-center p-4 mb-4 border border-dashed rounded-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="avatar flex-shrink-0">
+                            <span class="avatar-initial rounded bg-label-secondary p-2">
+                                <i class="bx bx-lock-alt fs-3"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1 text-secondary">Sertifikat Masih Terkunci</h6>
+                            <p class="mb-1 text-muted small">Selesaikan kedua ujian (Word & Excel) untuk membuka akses unduh
+                                sertifikat. <span class="fw-bold">Minimal nilai yang didapat > 75</span> </p>
+                        </div>
+                    </div>
+                    <button disabled class="btn btn-secondary px-4 text-white disabled">
+                        Terkunci <i class="bx bx-lock-alt ms-1 small"></i>
+                    </button>
+                </div>
+            @endif
+        @endif
 
         {{-- TABLE --}}
         <div class="card border-0 shadow-sm rounded-3">

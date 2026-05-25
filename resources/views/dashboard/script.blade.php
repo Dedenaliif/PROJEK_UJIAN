@@ -71,3 +71,14 @@
         });
     </script>
 @endif
+@if (session('error'))
+    <script>
+        Swal.fire({
+            icon: 'warning',
+            title: 'Pemberitahuan',
+            text: '{{ session('error') }}',
+            // timer: 2000,
+            showConfirmButton: 'Oke'
+        });
+    </script>
+@endif
