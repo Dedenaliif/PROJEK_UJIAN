@@ -617,7 +617,7 @@ class BuatUjianController extends Controller
 
             echo '
             <tr>
-                <td colspan="14" class="title">
+                <td colspan="16" class="title">
                     LAPORAN NILAI SEMUA SISWA
                 </td>
             </tr>';
@@ -635,7 +635,9 @@ class BuatUjianController extends Controller
                 <th>Word 3</th>
                 <th>Markup Word</th>
                 <th>Status Word</th>
-                <th>Excel Best</th>
+                <th>Excel 1</th>
+                <th>Excel 2</th>
+                <th>Excel 3</th>
                 <th>Markup Excel</th>
                 <th>Status Excel</th>
             </tr>';
@@ -710,33 +712,43 @@ class BuatUjianController extends Controller
                 /*
                 EXCEL
                 */
-                $bestExcel=$excel->sortByDesc('skor')->first();
+                $nilaiExcelTertinggi = null;
 
-                $nilaiExcelTertinggi=null;
-                $nilaiExcel=$bestExcel->skor ?? '-';
+                for($i=0;$i<3;$i++){
 
-                if(is_numeric($nilaiExcel)){
-                    $nilaiExcelTertinggi=$nilaiExcel;
+                    $nilai = $excel[$i]->skor ?? '-';
+
+                    if(is_numeric($nilai)){
+                        $nilaiExcelTertinggi = max($nilaiExcelTertinggi ?? 0,$nilai);
+                    }
+
+                    echo "<td>$nilai</td>";
                 }
 
-                echo "<td>$nilaiExcel</td>";
+                $bestExcel = $excel->sortByDesc('skor')->first();
 
                 $markupExcel='-';
 
-                if($bestExcel && $bestExcel->skor <75){
-                    $markupExcel=$bestExcel->skor_final ?? '-';
+                if($bestExcel && $bestExcel->skor < 75){
+
+                    $markupExcel = $bestExcel->skor_final ?? '-';
 
                     if(is_numeric($markupExcel)){
-                        $nilaiExcelTertinggi=max($nilaiExcelTertinggi,$markupExcel);
+                        $nilaiExcelTertinggi = max(
+                            $nilaiExcelTertinggi,
+                            $markupExcel
+                        );
                     }
                 }
 
                 if(is_null($nilaiExcelTertinggi)){
                     $statusExcel='BELUM UJIAN';
                     $classExcel='belum';
+
                 }elseif($nilaiExcelTertinggi>=75){
                     $statusExcel='LULUS';
                     $classExcel='lulus';
+
                 }else{
                     $statusExcel='REMEDIAL';
                     $classExcel='remedial';
@@ -744,8 +756,6 @@ class BuatUjianController extends Controller
 
                 echo "<td>$markupExcel</td>";
                 echo "<td class='$classExcel'>$statusExcel</td>";
-
-                echo '</tr>';
             }
 
             echo '</table></body></html>';
