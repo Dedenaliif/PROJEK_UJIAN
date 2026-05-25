@@ -124,9 +124,9 @@ Route::middleware('auth')->group(function () {
 
         // list ujian
         Route::get('/ujian', [BuatUjianController::class, 'index'])->name('siswa.ujian');
-        Route::get('/ujian/{ujianId}/sertifikat', [HalamanUjianController::class, 'cetakSertifikat'])
-            ->name('ujian.sertifikat')
-            ->middleware('auth'); // Pastikan siswa wajib login
+        // Route::get('/ujian/{ujianId}/sertifikat', [HalamanUjianController::class, 'cetakSertifikat'])
+        //     ->name('ujian.sertifikat')
+        //     ->middleware('auth'); // Pastikan siswa wajib login
         // ujian
         Route::post('/ujian/{ujian}/start', [HalamanUjianController::class, 'start'])->name('ujianstart.start');
         Route::get('/ujian/{ujian}', [HalamanUjianController::class, 'show'])->name('ujianstart.show');

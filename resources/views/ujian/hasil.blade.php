@@ -181,13 +181,13 @@
                     </a>
 
                     {{-- TOMBOL DOWNLOAD JIKA SISWA LULUS NILAI MENCAPAI STANDARD --}}
-                    @if ($lulus)
+                    {{-- @if ($lulus)
                         <a href="{{ route('ujian.sertifikat', $ujian->id) }}" target="_blank"
                             class="btn btn-warning px-4 shadow-sm fw-semibold text-dark">
                             <i class="bx bx-download me-1"></i>
                             Cetak Sertifikat
                         </a>
-                    @endif
+                    @endif --}}
 
                 </div>
 

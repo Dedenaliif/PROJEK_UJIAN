@@ -275,43 +275,43 @@ class HalamanUjianController extends Controller
     }
 
     // 🔥 TAMBAHKAN FUNGSI BARU INI UNTUK DOWNLOAD/CETAK PDF
-    public function cetakSertifikat($ujianId)
-    {
-        $percobaan = PercobaanUjian::where('user_id', Auth::id())
-            ->where('ujian_id', $ujianId)
-            ->where('status', 'selesai')
-            ->latest()
-            ->first();
+    // public function cetakSertifikat($ujianId)
+    // {
+    //     $percobaan = PercobaanUjian::where('user_id', Auth::id())
+    //         ->where('ujian_id', $ujianId)
+    //         ->where('status', 'selesai')
+    //         ->latest()
+    //         ->first();
 
-        if (!$percobaan) {
-            return abort(404, 'Data kelulusan tidak ditemukan.');
-        }
+    //     if (!$percobaan) {
+    //         return abort(404, 'Data kelulusan tidak ditemukan.');
+    //     }
 
-        $totalSoal = Pertanyaan::where('ujian_id', $ujianId)->count();
-        $jawabanBenar = Jawaban::where('percobaan_ujian_id', $percobaan->id)->where('benar', 1)->count();
+    //     $totalSoal = Pertanyaan::where('ujian_id', $ujianId)->count();
+    //     $jawabanBenar = Jawaban::where('percobaan_ujian_id', $percobaan->id)->where('benar', 1)->count();
         
-        $nilai = $totalSoal > 0 ? round(($jawabanBenar / $totalSoal) * 100) : 0;
+    //     $nilai = $totalSoal > 0 ? round(($jawabanBenar / $totalSoal) * 100) : 0;
 
-        // Proteksi keamanan: Jika manipulasi URL dilakukan secara sengaja
-        if ($nilai < 75) {
-            return abort(403, 'Maaf, Anda tidak berhak mengakses sertifikat ini.');
-        }
+    //     // Proteksi keamanan: Jika manipulasi URL dilakukan secara sengaja
+    //     if ($nilai < 75) {
+    //         return abort(403, 'Maaf, Anda tidak berhak mengakses sertifikat ini.');
+    //     }
 
-        $siswa = Siswa::where('user_id', Auth::id())->first();
-        $ujian = Ujian::findOrFail($ujianId);
+    //     $siswa = Siswa::where('user_id', Auth::id())->first();
+    //     $ujian = Ujian::findOrFail($ujianId);
 
-        // Jika ingin langsung print via browser (HTML view biasa):
-        return view('sertifikat.index', compact('siswa', 'ujian', 'nilai'));
+    //     // Jika ingin langsung print via browser (HTML view biasa):
+    //     return view('sertifikat.index', compact('siswa', 'ujian', 'nilai'));
 
-        /* 
-           💡 NOTE: Jika Anda menggunakan package 'barryvdh/laravel-dompdf', 
-           gunakan baris di bawah ini untuk menggantikan return view di atas:
+    //     /* 
+    //        💡 NOTE: Jika Anda menggunakan package 'barryvdh/laravel-dompdf', 
+    //        gunakan baris di bawah ini untuk menggantikan return view di atas:
            
-           $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('sertifikat.index', compact('siswa', 'ujian', 'nilai'))
-                     ->setPaper('a4', 'landscape');
-           return $pdf->download('Sertifikat_' . $siswa->nama_siswa . '.pdf');
-        */
-    }
+    //        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('sertifikat.index', compact('siswa', 'ujian', 'nilai'))
+    //                  ->setPaper('a4', 'landscape');
+    //        return $pdf->download('Sertifikat_' . $siswa->nama_siswa . '.pdf');
+    //     */
+    // }
 
 
 }

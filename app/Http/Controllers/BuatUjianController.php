@@ -562,8 +562,10 @@ class BuatUjianController extends Controller
             ->sortBy(fn($s) => strtoupper(trim($s->nama_siswa)))
             ->values();
 
+        // Mengambil data percobaan ujian yang sudah selesai
         $percobaanAll = PercobaanUjian::with('ujian')
             ->whereIn('user_id', $siswas->pluck('user_id'))
+            ->where('status', 'selesai') // Filter agar hanya mengambil yang sudah selesai
             ->orderBy('percobaan_ke')
             ->get()
             ->groupBy('user_id');
@@ -667,99 +669,83 @@ class BuatUjianController extends Controller
                 echo '<td class="nama">' . $siswa->nama_siswa . '</td>';
 
                 /*
-                WORD
+                =================================================================
+                LOGIKA BARU - WORD
+                =================================================================
                 */
                 $nilaiWordTertinggi = null;
 
                 for ($i = 0; $i < 3; $i++) {
-
                     $nilai = $word[$i]->skor ?? '-';
-
                     if (is_numeric($nilai)) {
                         $nilaiWordTertinggi = max($nilaiWordTertinggi ?? 0, $nilai);
                     }
-
                     echo "<td>$nilai</td>";
                 }
 
+                // Ambil percobaan dengan skor murni tertinggi untuk acuan data markup
                 $bestWord = $word->sortByDesc('skor')->first();
-
-                $markupWord = '-';
-
-                if ($bestWord && $bestWord->skor < 75) {
-                    $markupWord = $bestWord->skor_final ?? '-';
-
-                    if (is_numeric($markupWord)) {
-                        $nilaiWordTertinggi = max($nilaiWordTertinggi, $markupWord);
-                    }
-                }
+                $markupWord = $bestWord?->skor_final ?? '-';
 
                 if (is_null($nilaiWordTertinggi)) {
                     $statusWord = 'BELUM UJIAN';
                     $classWord = 'belum';
-                } elseif ($nilaiWordTertinggi >= 75) {
-                    $statusWord = 'LULUS';
-                    $classWord = 'lulus';
                 } else {
-                    $statusWord = 'REMEDIAL';
-                    $classWord = 'remedial';
+                    // LULUS jika nilai murni >= 75 ATAU kolom skor_final terisi angka berapapun
+                    if ($nilaiWordTertinggi >= 75 || $markupWord != '-') {
+                        $statusWord = 'LULUS';
+                        $classWord = 'lulus';
+                    } else {
+                        $statusWord = 'REMEDIAL';
+                        $classWord = 'remedial';
+                    }
                 }
 
                 echo "<td>$markupWord</td>";
                 echo "<td class='$classWord'>$statusWord</td>";
 
                 /*
-                EXCEL
+                =================================================================
+                LOGIKA BARU - EXCEL
+                =================================================================
                 */
                 $nilaiExcelTertinggi = null;
 
                 for ($i = 0; $i < 3; $i++) {
-
                     $nilai = $excel[$i]->skor ?? '-';
-
                     if (is_numeric($nilai)) {
                         $nilaiExcelTertinggi = max($nilaiExcelTertinggi ?? 0, $nilai);
                     }
-
                     echo "<td>$nilai</td>";
                 }
 
+                // Ambil percobaan dengan skor murni tertinggi untuk acuan data markup
                 $bestExcel = $excel->sortByDesc('skor')->first();
-
-                $markupExcel = '-';
-
-                if ($bestExcel && $bestExcel->skor < 75) {
-
-                    $markupExcel = $bestExcel->skor_final ?? '-';
-
-                    if (is_numeric($markupExcel)) {
-                        $nilaiExcelTertinggi = max(
-                            $nilaiExcelTertinggi,
-                            $markupExcel
-                        );
-                    }
-                }
+                $markupExcel = $bestExcel?->skor_final ?? '-';
 
                 if (is_null($nilaiExcelTertinggi)) {
                     $statusExcel = 'BELUM UJIAN';
                     $classExcel = 'belum';
-                } elseif ($nilaiExcelTertinggi >= 75) {
-                    $statusExcel = 'LULUS';
-                    $classExcel = 'lulus';
                 } else {
-                    $statusExcel = 'REMEDIAL';
-                    $classExcel = 'remedial';
+                    // LULUS jika nilai murni >= 75 ATAU kolom skor_final terisi angka berapapun
+                    if ($nilaiExcelTertinggi >= 75 || $markupExcel != '-') {
+                        $statusExcel = 'LULUS';
+                        $classExcel = 'lulus';
+                    } else {
+                        $statusExcel = 'REMEDIAL';
+                        $classExcel = 'remedial';
+                    }
                 }
 
                 echo "<td>$markupExcel</td>";
                 echo "<td class='$classExcel'>$statusExcel</td>";
+
+                echo '</tr>';
             }
 
             echo '</table></body></html>';
         }, 200, [
-
             'Content-Type' => 'application/vnd.ms-excel',
-
             'Content-Disposition' => "attachment; filename=\"$filename\""
         ]);
     }
